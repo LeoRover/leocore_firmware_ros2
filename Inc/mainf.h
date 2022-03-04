@@ -6,7 +6,7 @@ extern "C" {
 
 // #include <stdint.h>
 
-// extern volatile uint16_t adc_buff[5];
+extern volatile uint16_t adc_buff[5];
 void setup();
 void loop();
 void update();
