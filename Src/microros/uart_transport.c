@@ -3,14 +3,18 @@
 
 #include "microros/uart_transport.h"
 
-#define UART_DMA_BUFFER_SIZE 2048
+#define DMA_RBUFFER_SIZE 2048
+#define DMA_TBUFFER_SIZE 2048
 
-static uint8_t dma_buffer[UART_DMA_BUFFER_SIZE];
-static size_t dma_head = 0, dma_tail = 0;
+static uint8_t dma_rbuffer[DMA_RBUFFER_SIZE];
+static uint16_t dma_rhead = 0, dma_rtail = 0;
+
+static uint8_t dma_tbuffer[DMA_TBUFFER_SIZE];
+static volatile uint16_t dma_thead = 0, dma_thead_next = 0, dma_ttail = 0;
 
 bool uart_transport_open(struct uxrCustomTransport* transport) {
   UART_HandleTypeDef* uart = (UART_HandleTypeDef*)transport->args;
-  HAL_UART_Receive_DMA(uart, dma_buffer, UART_DMA_BUFFER_SIZE);
+  HAL_UART_Receive_DMA(uart, dma_rbuffer, DMA_RBUFFER_SIZE);
   return true;
 }
 
@@ -20,21 +24,56 @@ bool uart_transport_close(struct uxrCustomTransport* transport) {
   return true;
 }
 
+static void uart_flush(UART_HandleTypeDef* uart) {
+  static volatile bool mutex = false;
+
+  if ((uart->gState == HAL_UART_STATE_READY) && !mutex) {
+    mutex = true;
+
+    if (dma_thead != dma_ttail) {
+      uint16_t len = dma_thead < dma_ttail ? dma_ttail - dma_thead
+                                           : DMA_TBUFFER_SIZE - dma_thead;
+      dma_thead_next = (dma_thead + len) & (DMA_TBUFFER_SIZE - 1);
+      HAL_UART_Transmit_DMA(uart, dma_tbuffer + dma_thead, len);
+    }
+    mutex = false;
+  }
+}
+
+static inline uint16_t get_buffer_available() {
+  return dma_thead <= dma_ttail ? DMA_TBUFFER_SIZE - dma_ttail + dma_thead
+                                : dma_thead - dma_ttail;
+}
+
 size_t uart_transport_write(struct uxrCustomTransport* transport,
                             const uint8_t* buf, size_t len, uint8_t* err) {
   UART_HandleTypeDef* uart = (UART_HandleTypeDef*)transport->args;
 
-  HAL_StatusTypeDef ret;
-  if (uart->gState == HAL_UART_STATE_READY) {
-    ret = HAL_UART_Transmit_DMA(uart, buf, len);
-    while (ret == HAL_OK && uart->gState != HAL_UART_STATE_READY) {
-      HAL_Delay(1);
-    }
+  uint16_t n = len;
+  uint16_t buffer_available = dma_thead <= dma_ttail
+                                  ? DMA_TBUFFER_SIZE - dma_ttail + dma_thead
+                                  : dma_thead - dma_ttail;
+  if (n > buffer_available) n = buffer_available;
 
-    return (ret == HAL_OK) ? len : 0;
-  } else {
-    return 0;
+  uint16_t n_tail =
+      n <= DMA_TBUFFER_SIZE - dma_ttail ? n : DMA_TBUFFER_SIZE - dma_ttail;
+
+  memcpy(dma_tbuffer + dma_ttail, buf, n_tail);
+
+  if (n != n_tail) {
+    memcpy(dma_tbuffer, buf + n_tail, n - n_tail);
   }
+
+  dma_ttail = (dma_ttail + n) & (DMA_TBUFFER_SIZE - 1);
+
+  uart_flush(uart);
+
+  return n;
+}
+
+void uart_transfer_complete_callback(UART_HandleTypeDef* uart) {
+  dma_thead = dma_thead_next;
+  uart_flush(uart);
 }
 
 size_t uart_transport_read(struct uxrCustomTransport* transport, uint8_t* buf,
@@ -44,16 +83,16 @@ size_t uart_transport_read(struct uxrCustomTransport* transport, uint8_t* buf,
   int ms_used = 0;
   do {
     __disable_irq();
-    dma_tail = UART_DMA_BUFFER_SIZE - __HAL_DMA_GET_COUNTER(uart->hdmarx);
+    dma_rtail = DMA_RBUFFER_SIZE - __HAL_DMA_GET_COUNTER(uart->hdmarx);
     __enable_irq();
     ms_used++;
     HAL_Delay(1);
-  } while (dma_head == dma_tail && ms_used < timeout);
+  } while (dma_rhead == dma_rtail && ms_used < timeout);
 
   size_t wrote = 0;
-  while ((dma_head != dma_tail) && (wrote < len)) {
-    buf[wrote] = dma_buffer[dma_head];
-    dma_head = (dma_head + 1) % UART_DMA_BUFFER_SIZE;
+  while ((dma_rhead != dma_rtail) && (wrote < len)) {
+    buf[wrote] = dma_rbuffer[dma_rhead];
+    dma_rhead = (dma_rhead + 1) % DMA_RBUFFER_SIZE;
     wrote++;
   }
 
