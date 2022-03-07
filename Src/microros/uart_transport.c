@@ -85,15 +85,21 @@ size_t uart_transport_read(struct uxrCustomTransport* transport, uint8_t* buf,
     __disable_irq();
     dma_rtail = DMA_RBUFFER_SIZE - __HAL_DMA_GET_COUNTER(uart->hdmarx);
     __enable_irq();
-    ms_used++;
+
+    uint16_t data_available = dma_rhead <= dma_rtail
+                                  ? dma_rtail - dma_rhead
+                                  : DMA_RBUFFER_SIZE - dma_rhead + dma_rtail;
+
+    if (data_available >= len) break;
+
     HAL_Delay(1);
-  } while (dma_rhead == dma_rtail && ms_used < timeout);
+    ms_used++;
+  } while (ms_used < timeout);
 
   size_t wrote = 0;
   while ((dma_rhead != dma_rtail) && (wrote < len)) {
-    buf[wrote] = dma_rbuffer[dma_rhead];
-    dma_rhead = (dma_rhead + 1) % DMA_RBUFFER_SIZE;
-    wrote++;
+    buf[wrote++] = dma_rbuffer[dma_rhead];
+    dma_rhead = (dma_rhead + 1) & (DMA_RBUFFER_SIZE - 1);
   }
 
   return wrote;
