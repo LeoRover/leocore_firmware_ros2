@@ -1,6 +1,9 @@
+#include <string>
+
 #include <rcl/rcl.h>
 #include <rclc/executor.h>
 #include <rclc/rclc.h>
+#include <rosidl_runtime_c/string_functions.h>
 
 #include <rmw_microros/rmw_microros.h>
 #include <uxr/client/transport.h>
@@ -25,6 +28,7 @@
 static rcl_allocator_t allocator;
 static rclc_support_t support;
 static rcl_node_t node;
+static rclc_executor_t executor;
 static bool configured = false;
 
 static std_msgs__msg__Float32 battery;
@@ -46,7 +50,7 @@ static leo_msgs__msg__Imu imu;
 static rcl_publisher_t imu_pub;
 static bool publish_imu = false;
 
-static rclc_executor_t executor;
+static bool reset_request = false;
 
 MotorController MotA(MOT_A_CONFIG);
 MotorController MotB(MOT_B_CONFIG);
@@ -56,27 +60,114 @@ MotorController MotD(MOT_D_CONFIG);
 static DiffDriveController dc(DD_CONFIG);
 static ImuReceiver imu_receiver(&IMU_I2C);
 
-Parameters params;
-
-rcl_ret_t rc;
+static Parameters params;
 
 static void error_loop() {
   for (;;) {
   }
 }
 
-void cmdVelCallback(const void* msgin) {
+static void cmdVelCallback(const void* msgin) {
   const geometry_msgs__msg__Twist* msg =
       (const geometry_msgs__msg__Twist*)msgin;
   dc.setSpeed(msg->linear.x, msg->angular.z);
 }
 
+static void resetOdometryCallback(const void* reqin, void* resin) {
+  std_srvs__srv__Trigger_Response* res =
+      (std_srvs__srv__Trigger_Response*)resin;
+  dc.resetOdom();
+  res->success = true;
+}
+
+static void resetBoardCallback(const void* reqin, void* resin) {
+  std_srvs__srv__Trigger_Response* res =
+      (std_srvs__srv__Trigger_Response*)resin;
+  reset_request = true;
+  rosidl_runtime_c__String__assign(&res->message,
+                                   "Requested board software reset");
+  res->success = true;
+}
+
+static void getFirmwareVersionCallback(const void* reqin, void* resin) {
+  std_srvs__srv__Trigger_Response* res =
+      (std_srvs__srv__Trigger_Response*)resin;
+  rosidl_runtime_c__String__assign(&res->message, FIRMWARE_VERSION);
+  res->success = true;
+}
+
+static void getBoardTypeCallback(const void* reqin, void* resin) {
+  std_srvs__srv__Trigger_Response* res =
+      (std_srvs__srv__Trigger_Response*)resin;
+  rosidl_runtime_c__String__assign(&res->message, "leocore");
+  res->success = true;
+}
+
+struct WheelWrapper {
+  explicit WheelWrapper(WheelController& wheel, std::string wheel_name)
+      : wheel_(wheel),
+        cmd_pwm_topic_("firmware/wheel_" + wheel_name + "/cmd_pwm_duty"),
+        cmd_vel_topic_("firmware/wheel_" + wheel_name + "/cmd_velocity") {}
+
+  void initROS() {
+    rclc_subscription_init_default(
+        &cmd_pwm_sub_, &node,
+        ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float32),
+        cmd_pwm_topic_.c_str());
+    rclc_executor_add_subscription_with_context(
+        &executor, &cmd_pwm_sub_, &cmd_pwm_msg_, cmdPWMDutyCallback, &wheel_,
+        ON_NEW_DATA);
+    rclc_subscription_init_default(
+        &cmd_vel_sub_, &node,
+        ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float32),
+        cmd_vel_topic_.c_str());
+    rclc_executor_add_subscription_with_context(&executor, &cmd_vel_sub_,
+                                                &cmd_vel_msg_, cmdVelCallback,
+                                                &wheel_, ON_NEW_DATA);
+  }
+
+  static void cmdPWMDutyCallback(const void* msgin, void* context) {
+    const std_msgs__msg__Float32* msg = (std_msgs__msg__Float32*)msgin;
+    WheelController* wheel = (WheelController*)context;
+    wheel->disable();
+    wheel->motor.setPWMDutyCycle(msg->data);
+  }
+
+  static void cmdVelCallback(const void* msgin, void* context) {
+    const std_msgs__msg__Float32* msg = (std_msgs__msg__Float32*)msgin;
+    WheelController* wheel = (WheelController*)context;
+    wheel->enable();
+    wheel->setTargetVelocity(msg->data);
+  }
+
+ private:
+  WheelController& wheel_;
+  std::string cmd_pwm_topic_;
+  std::string cmd_vel_topic_;
+  rcl_subscription_t cmd_pwm_sub_;
+  rcl_subscription_t cmd_vel_sub_;
+  std_msgs__msg__Float32 cmd_pwm_msg_;
+  std_msgs__msg__Float32 cmd_vel_msg_;
+};
+
+static WheelWrapper wheel_FL_wrapper(dc.wheel_FL, "FL");
+static WheelWrapper wheel_RL_wrapper(dc.wheel_RL, "RL");
+static WheelWrapper wheel_FR_wrapper(dc.wheel_FR, "FR");
+static WheelWrapper wheel_RR_wrapper(dc.wheel_RR, "RR");
+
 static rcl_subscription_t twist_sub;
 static geometry_msgs__msg__Twist twist_msg;
 
+static rcl_service_t reset_odometry_srv, firmware_version_srv, board_type_srv,
+    reset_board_srv;
+static std_srvs__srv__Trigger_Request reset_odometry_req, firmware_version_req,
+    board_type_req, reset_board_req;
+static std_srvs__srv__Trigger_Response reset_odometry_res, firmware_version_res,
+    board_type_res, reset_board_res;
+
 static void initROS() {
   // Node
-  if ((rc = rclc_node_init_default(&node, "firmware", "", &support)) != RCL_RET_OK)
+  if (rclc_node_init_default(&node, "firmware", "", &support) != RCL_RET_OK)
     error_loop();
 
   // Executor
@@ -108,6 +199,37 @@ static void initROS() {
       "cmd_vel");
   rclc_executor_add_subscription(&executor, &twist_sub, &twist_msg,
                                  cmdVelCallback, ON_NEW_DATA);
+
+  // Services
+  rclc_service_init_default(&reset_odometry_srv, &node,
+                            ROSIDL_GET_SRV_TYPE_SUPPORT(std_srvs, srv, Trigger),
+                            "firmware/reset_odometry");
+  rclc_executor_add_service(&executor, &reset_odometry_srv, &reset_odometry_req,
+                            &reset_odometry_res, resetOdometryCallback);
+
+  rclc_service_init_default(&firmware_version_srv, &node,
+                            ROSIDL_GET_SRV_TYPE_SUPPORT(std_srvs, srv, Trigger),
+                            "firmware/get_firmware_version");
+  rclc_executor_add_service(&executor, &firmware_version_srv,
+                            &firmware_version_req, &firmware_version_res,
+                            getFirmwareVersionCallback);
+
+  rclc_service_init_default(&board_type_srv, &node,
+                            ROSIDL_GET_SRV_TYPE_SUPPORT(std_srvs, srv, Trigger),
+                            "firmware/get_board_type");
+  rclc_executor_add_service(&executor, &board_type_srv, &board_type_req,
+                            &board_type_res, getBoardTypeCallback);
+
+  rclc_service_init_default(&reset_board_srv, &node,
+                            ROSIDL_GET_SRV_TYPE_SUPPORT(std_srvs, srv, Trigger),
+                            "firmware/reset_board");
+  rclc_executor_add_service(&executor, &reset_board_srv, &reset_board_req,
+                            &reset_board_res, resetBoardCallback);
+
+  wheel_FL_wrapper.initROS();
+  wheel_RL_wrapper.initROS();
+  wheel_FR_wrapper.initROS();
+  wheel_RR_wrapper.initROS();
 }
 
 void setup() {
@@ -132,8 +254,7 @@ void setup() {
 }
 
 void loop() {
-  if (rclc_executor_spin_some(&executor, 0) != RCL_RET_OK)
-    error_loop();
+  if (rclc_executor_spin_some(&executor, 0) != RCL_RET_OK) error_loop();
 
   if (publish_battery) {
     rcl_publish(&battery_pub, &battery, NULL);
@@ -237,7 +358,7 @@ void update() {
   }
 }
 
-void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
+void HAL_UART_TxCpltCallback(UART_HandleTypeDef* huart) {
   if (huart == &ROSSERIAL_UART) {
     uart_transfer_complete_callback(huart);
   }
