@@ -1,5 +1,3 @@
-#include <string>
-
 #include <rcl/rcl.h>
 #include <rclc/executor.h>
 #include <rclc/rclc.h>
@@ -49,6 +47,31 @@ static bool publish_wheel_states = false;
 static leo_msgs__msg__Imu imu;
 static rcl_publisher_t imu_pub;
 static bool publish_imu = false;
+
+static rcl_subscription_t twist_sub;
+static geometry_msgs__msg__Twist twist_msg;
+
+#define WHEEL_WRAPPER(NAME)                         \
+  static const char* NAME##_cmd_pwm_topic =         \
+      "firmware/wheel_" #NAME "/cmd_pwm_duty";      \
+  static const char* NAME##_cmd_vel_topic =         \
+      "firmware/wheel_" #NAME "/cmd_velocity";      \
+  static rcl_subscription_t NAME##_cmd_pwm_sub;     \
+  static rcl_subscription_t NAME##_cmd_vel_sub;     \
+  static std_msgs__msg__Float32 NAME##_cmd_pwm_msg; \
+  static std_msgs__msg__Float32 NAME##_cmd_vel_msg;
+
+WHEEL_WRAPPER(FL)
+WHEEL_WRAPPER(RL)
+WHEEL_WRAPPER(FR)
+WHEEL_WRAPPER(RR)
+
+static rcl_service_t reset_odometry_srv, firmware_version_srv, board_type_srv,
+    reset_board_srv;
+static std_srvs__srv__Trigger_Request reset_odometry_req, firmware_version_req,
+    board_type_req, reset_board_req;
+static std_srvs__srv__Trigger_Response reset_odometry_res, firmware_version_res,
+    board_type_res, reset_board_res;
 
 static bool reset_request = false;
 
@@ -103,67 +126,19 @@ static void getBoardTypeCallback(const void* reqin, void* resin) {
   res->success = true;
 }
 
-struct WheelWrapper {
-  explicit WheelWrapper(WheelController& wheel, std::string wheel_name)
-      : wheel_(wheel),
-        cmd_pwm_topic_("firmware/wheel_" + wheel_name + "/cmd_pwm_duty"),
-        cmd_vel_topic_("firmware/wheel_" + wheel_name + "/cmd_velocity") {}
+static void wheelCmdPWMDutyCallback(const void* msgin, void* context) {
+  const std_msgs__msg__Float32* msg = (std_msgs__msg__Float32*)msgin;
+  WheelController* wheel = (WheelController*)context;
+  wheel->disable();
+  wheel->motor.setPWMDutyCycle(msg->data);
+}
 
-  void initROS() {
-    rclc_subscription_init_default(
-        &cmd_pwm_sub_, &node,
-        ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float32),
-        cmd_pwm_topic_.c_str());
-    rclc_executor_add_subscription_with_context(
-        &executor, &cmd_pwm_sub_, &cmd_pwm_msg_, cmdPWMDutyCallback, &wheel_,
-        ON_NEW_DATA);
-    rclc_subscription_init_default(
-        &cmd_vel_sub_, &node,
-        ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float32),
-        cmd_vel_topic_.c_str());
-    rclc_executor_add_subscription_with_context(&executor, &cmd_vel_sub_,
-                                                &cmd_vel_msg_, cmdVelCallback,
-                                                &wheel_, ON_NEW_DATA);
-  }
-
-  static void cmdPWMDutyCallback(const void* msgin, void* context) {
-    const std_msgs__msg__Float32* msg = (std_msgs__msg__Float32*)msgin;
-    WheelController* wheel = (WheelController*)context;
-    wheel->disable();
-    wheel->motor.setPWMDutyCycle(msg->data);
-  }
-
-  static void cmdVelCallback(const void* msgin, void* context) {
-    const std_msgs__msg__Float32* msg = (std_msgs__msg__Float32*)msgin;
-    WheelController* wheel = (WheelController*)context;
-    wheel->enable();
-    wheel->setTargetVelocity(msg->data);
-  }
-
- private:
-  WheelController& wheel_;
-  std::string cmd_pwm_topic_;
-  std::string cmd_vel_topic_;
-  rcl_subscription_t cmd_pwm_sub_;
-  rcl_subscription_t cmd_vel_sub_;
-  std_msgs__msg__Float32 cmd_pwm_msg_;
-  std_msgs__msg__Float32 cmd_vel_msg_;
-};
-
-static WheelWrapper wheel_FL_wrapper(dc.wheel_FL, "FL");
-static WheelWrapper wheel_RL_wrapper(dc.wheel_RL, "RL");
-static WheelWrapper wheel_FR_wrapper(dc.wheel_FR, "FR");
-static WheelWrapper wheel_RR_wrapper(dc.wheel_RR, "RR");
-
-static rcl_subscription_t twist_sub;
-static geometry_msgs__msg__Twist twist_msg;
-
-static rcl_service_t reset_odometry_srv, firmware_version_srv, board_type_srv,
-    reset_board_srv;
-static std_srvs__srv__Trigger_Request reset_odometry_req, firmware_version_req,
-    board_type_req, reset_board_req;
-static std_srvs__srv__Trigger_Response reset_odometry_res, firmware_version_res,
-    board_type_res, reset_board_res;
+static void wheelCmdVelCallback(const void* msgin, void* context) {
+  const std_msgs__msg__Float32* msg = (std_msgs__msg__Float32*)msgin;
+  WheelController* wheel = (WheelController*)context;
+  wheel->enable();
+  wheel->setTargetVelocity(msg->data);
+}
 
 static void initROS() {
   // Node
@@ -171,7 +146,7 @@ static void initROS() {
     error_loop();
 
   // Executor
-  rclc_executor_init(&executor, &support.context, 1, &allocator);
+  rclc_executor_init(&executor, &support.context, 13, &allocator);
 
   // Publishers
   rclc_publisher_init_best_effort(
@@ -200,6 +175,27 @@ static void initROS() {
   rclc_executor_add_subscription(&executor, &twist_sub, &twist_msg,
                                  cmdVelCallback, ON_NEW_DATA);
 
+#define WHEEL_INIT_ROS(NAME)                                   \
+  rclc_subscription_init_default(                              \
+      &NAME##_cmd_pwm_sub, &node,                              \
+      ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float32),     \
+      NAME##_cmd_pwm_topic);                                   \
+  rclc_executor_add_subscription_with_context(                 \
+      &executor, &NAME##_cmd_pwm_sub, &NAME##_cmd_pwm_msg,     \
+      wheelCmdPWMDutyCallback, &dc.wheel_##NAME, ON_NEW_DATA); \
+  rclc_subscription_init_default(                              \
+      &NAME##_cmd_vel_sub, &node,                              \
+      ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float32),     \
+      NAME##_cmd_vel_topic);                                   \
+  rclc_executor_add_subscription_with_context(                 \
+      &executor, &NAME##_cmd_vel_sub, &NAME##_cmd_vel_msg,     \
+      wheelCmdVelCallback, &dc.wheel_##NAME, ON_NEW_DATA);
+
+  WHEEL_INIT_ROS(FL)
+  WHEEL_INIT_ROS(RL)
+  WHEEL_INIT_ROS(FR)
+  WHEEL_INIT_ROS(RR)
+
   // Services
   rclc_service_init_default(&reset_odometry_srv, &node,
                             ROSIDL_GET_SRV_TYPE_SUPPORT(std_srvs, srv, Trigger),
@@ -225,11 +221,6 @@ static void initROS() {
                             "firmware/reset_board");
   rclc_executor_add_service(&executor, &reset_board_srv, &reset_board_req,
                             &reset_board_res, resetBoardCallback);
-
-  wheel_FL_wrapper.initROS();
-  wheel_RL_wrapper.initROS();
-  wheel_FR_wrapper.initROS();
-  wheel_RR_wrapper.initROS();
 }
 
 void setup() {
