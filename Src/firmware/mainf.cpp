@@ -297,6 +297,8 @@ void update() {
 
   if (!configured) return;
 
+  if (reset_request) reset();
+
   dc.update(UPDATE_PERIOD);
 
   if (cnt % BATTERY_PUB_PERIOD == 0 && !publish_battery) {
