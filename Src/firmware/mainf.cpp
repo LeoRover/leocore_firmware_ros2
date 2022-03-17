@@ -36,7 +36,9 @@ static std_msgs__msg__Float32 battery_averaged;
 static rcl_publisher_t battery_pub = rcl_get_zero_initialized_publisher();
 static rcl_publisher_t battery_averaged_pub =
     rcl_get_zero_initialized_publisher();
-static CircularBuffer<float> battery_buffer_(BATTERY_BUFFER_SIZE);
+static float battery_buffer_memory[BATTERY_BUFFER_SIZE];
+static CircularBuffer<float> battery_buffer(BATTERY_BUFFER_SIZE,
+                                            battery_buffer_memory);
 static bool publish_battery = false;
 
 static leo_msgs__msg__WheelOdom wheel_odom;
@@ -308,7 +310,7 @@ void update() {
   static float battery_avg = 0.0F;
   float battery_new = static_cast<float>(BATTERY_ADC) * BATTERY_ADC_TO_VOLTAGE;
   battery_sum += battery_new;
-  battery_sum -= battery_buffer_.push_back(battery_new);
+  battery_sum -= battery_buffer.push_back(battery_new);
   battery_avg =
       battery_sum / static_cast<float>(std::min(BATTERY_BUFFER_SIZE, cnt));
 
