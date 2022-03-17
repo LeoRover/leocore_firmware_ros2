@@ -23,32 +23,34 @@
 #include "firmware/imu_receiver.hpp"
 #include "firmware/parameters.hpp"
 
-static rcl_allocator_t allocator;
+static rcl_allocator_t allocator = rcl_get_default_allocator();
 static rclc_support_t support;
-static rcl_node_t node;
-static rclc_executor_t executor;
+static rcl_node_t node = rcl_get_zero_initialized_node();
+static rclc_executor_t executor = rclc_executor_get_zero_initialized_executor();
 static bool configured = false;
+static bool ros_initialized = false;
 
 static std_msgs__msg__Float32 battery;
 static std_msgs__msg__Float32 battery_averaged;
-static rcl_publisher_t battery_pub;
-static rcl_publisher_t battery_averaged_pub;
+static rcl_publisher_t battery_pub = rcl_get_zero_initialized_publisher();
+static rcl_publisher_t battery_averaged_pub =
+    rcl_get_zero_initialized_publisher();
 static CircularBuffer<float> battery_buffer_(BATTERY_BUFFER_SIZE);
 static bool publish_battery = false;
 
 static leo_msgs__msg__WheelOdom wheel_odom;
-static rcl_publisher_t wheel_odom_pub;
+static rcl_publisher_t wheel_odom_pub = rcl_get_zero_initialized_publisher();
 static bool publish_wheel_odom = false;
 
 static leo_msgs__msg__WheelStates wheel_states;
-static rcl_publisher_t wheel_states_pub;
+static rcl_publisher_t wheel_states_pub = rcl_get_zero_initialized_publisher();
 static bool publish_wheel_states = false;
 
 static leo_msgs__msg__Imu imu;
-static rcl_publisher_t imu_pub;
+static rcl_publisher_t imu_pub = rcl_get_zero_initialized_publisher();
 static bool publish_imu = false;
 
-static rcl_subscription_t twist_sub;
+static rcl_subscription_t twist_sub = rcl_get_zero_initialized_subscription();
 static geometry_msgs__msg__Twist twist_msg;
 
 #define WHEEL_WRAPPER(NAME)                         \
@@ -66,8 +68,10 @@ WHEEL_WRAPPER(RL)
 WHEEL_WRAPPER(FR)
 WHEEL_WRAPPER(RR)
 
-static rcl_service_t reset_odometry_srv, firmware_version_srv, board_type_srv,
-    reset_board_srv;
+static rcl_service_t reset_odometry_srv = rcl_get_zero_initialized_service(),
+                     firmware_version_srv = rcl_get_zero_initialized_service(),
+                     board_type_srv = rcl_get_zero_initialized_service(),
+                     reset_board_srv = rcl_get_zero_initialized_service();
 static std_srvs__srv__Trigger_Request reset_odometry_req, firmware_version_req,
     board_type_req, reset_board_req;
 static std_srvs__srv__Trigger_Response reset_odometry_res, firmware_version_res,
@@ -140,10 +144,22 @@ static void wheelCmdVelCallback(const void* msgin, void* context) {
   wheel->setTargetVelocity(msg->data);
 }
 
-static void initROS() {
+static void parameterChangedCallback(Parameter* param) {}
+
+static void initMsgs() {
+  std_msgs__msg__Float32__init(&battery);
+  std_msgs__msg__Float32__init(&battery_averaged);
+  leo_msgs__msg__WheelOdom__init(&wheel_odom);
+  leo_msgs__msg__WheelStates__init(&wheel_states);
+  leo_msgs__msg__Imu__init(&imu);
+}
+
+static bool initROS() {
+  if (rclc_support_init(&support, 0, NULL, &allocator) != RCL_RET_OK)
+    return false;
+
   // Node
-  if (rclc_node_init_default(&node, "firmware", "", &support) != RCL_RET_OK)
-    error_loop();
+  rclc_node_init_default(&node, "firmware", "", &support);
 
   // Executor
   rclc_executor_init(&executor, &support.context, 13, &allocator);
@@ -168,7 +184,7 @@ static void initROS() {
       &imu_pub, &node, ROSIDL_GET_MSG_TYPE_SUPPORT(leo_msgs, msg, Imu),
       "firmware/imu");
 
-  // Subscribers
+  // Subscriptions
   rclc_subscription_init_default(
       &twist_sub, &node, ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, Twist),
       "cmd_vel");
@@ -221,27 +237,23 @@ static void initROS() {
                             "firmware/reset_board");
   rclc_executor_add_service(&executor, &reset_board_srv, &reset_board_req,
                             &reset_board_res, resetBoardCallback);
+
+  // Synchronize clock
+  rmw_uros_sync_session(1000);
+
+  return true;
 }
 
 void setup() {
   rmw_uros_set_uart_transport(&huart1);
 
-  allocator = rcl_get_default_allocator();
-
-  // Try to connect with Micro-ROS agent
-  if (rclc_support_init(&support, 0, NULL, &allocator) != RCL_RET_OK)
-    error_loop();
-
-  initROS();
-
-  rmw_uros_sync_session(1000);
+  initMsgs();
+  ros_initialized = initROS();
 
   imu_receiver.init();
 
   // Initialize Diff Drive Controller
   dc.init(params);
-
-  configured = true;
 }
 
 void loop() {
@@ -295,7 +307,7 @@ void update() {
     gpio_reset(LED);
   }
 
-  if (!configured) return;
+  if (!ros_initialized) return;
 
   if (reset_request) reset();
 
