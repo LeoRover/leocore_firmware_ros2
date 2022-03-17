@@ -1,6 +1,7 @@
 #include <rcl/rcl.h>
 #include <rclc/executor.h>
 #include <rclc/rclc.h>
+#include <rclc_parameter/rclc_parameter.h>
 #include <rosidl_runtime_c/string_functions.h>
 
 #include <rmw_microros/rmw_microros.h>
@@ -27,7 +28,7 @@ static rcl_allocator_t allocator = rcl_get_default_allocator();
 static rclc_support_t support;
 static rcl_node_t node = rcl_get_zero_initialized_node();
 static rclc_executor_t executor = rclc_executor_get_zero_initialized_executor();
-static bool configured = false;
+static rclc_parameter_server_t param_server;
 static bool ros_initialized = false;
 
 static std_msgs__msg__Float32 battery;
@@ -162,7 +163,8 @@ static bool initROS() {
   rclc_node_init_default(&node, "firmware", "", &support);
 
   // Executor
-  rclc_executor_init(&executor, &support.context, 13, &allocator);
+  rclc_executor_init(&executor, &support.context,
+                     13 + RCLC_PARAMETER_EXECUTOR_HANDLES_NUMBER, &allocator);
 
   // Publishers
   rclc_publisher_init_best_effort(
@@ -237,6 +239,15 @@ static bool initROS() {
                             "firmware/reset_board");
   rclc_executor_add_service(&executor, &reset_board_srv, &reset_board_req,
                             &reset_board_res, resetBoardCallback);
+
+  // Parameter Server
+  static rclc_parameter_options_t param_options;
+  param_options.max_params = 11;
+  param_options.notify_changed_over_dds = true;
+  rclc_parameter_server_init_with_option(&param_server, &node, &param_options);
+  rclc_executor_add_parameter_server(&executor, &param_server,
+                                     parameterChangedCallback);
+  params.init(&param_server);
 
   // Synchronize clock
   rmw_uros_sync_session(1000);

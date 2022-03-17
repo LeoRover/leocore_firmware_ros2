@@ -1,5 +1,7 @@
 #pragma once
 
+#include <rclc_parameter/rclc_parameter.h>
+
 #include <diff_drive_controller.hpp>
 
 struct Parameters : DiffDriveParams {
@@ -21,4 +23,6 @@ struct Parameters : DiffDriveParams {
   }
 
   float battery_min_voltage = 10.0;
+
+  void init(rclc_parameter_server_t* param_server);
 };
