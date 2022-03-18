@@ -141,7 +141,9 @@ static void wheelCmdVelCallback(const void* msgin, void* context) {
   wheel->setTargetVelocity(msg->data);
 }
 
-static void parameterChangedCallback(Parameter* param) {}
+static void parameterChangedCallback(Parameter* param) {
+  params.update(&param_server);
+}
 
 static void pingTimerCallback(rcl_timer_t* timer, int64_t last_call_time) {
   if (rmw_uros_ping_agent(1000, 3) != RMW_RET_OK) uros_agent_connected = false;

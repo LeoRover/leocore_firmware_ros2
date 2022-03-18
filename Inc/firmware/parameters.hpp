@@ -7,7 +7,7 @@
 struct Parameters : DiffDriveParams {
   // Override inherited parameters
   Parameters() {
-    // Motor
+    // Wheel
     wheel_encoder_resolution = 878.4F;
     wheel_torque_constant = 1.17647F;
     wheel_pid_p = 0.0F;
@@ -25,4 +25,5 @@ struct Parameters : DiffDriveParams {
   float battery_min_voltage = 10.0;
 
   bool init(rclc_parameter_server_t* param_server);
+  void update(rclc_parameter_server_t* param_server);
 };
