@@ -26,34 +26,33 @@
 
 static rcl_allocator_t allocator = rcl_get_default_allocator();
 static rclc_support_t support;
-static rcl_node_t node = rcl_get_zero_initialized_node();
-static rclc_executor_t executor = rclc_executor_get_zero_initialized_executor();
+static rcl_node_t node;
+static rclc_executor_t executor;
 static rclc_parameter_server_t param_server;
 static bool ros_initialized = false;
 
 static std_msgs__msg__Float32 battery;
 static std_msgs__msg__Float32 battery_averaged;
-static rcl_publisher_t battery_pub = rcl_get_zero_initialized_publisher();
-static rcl_publisher_t battery_averaged_pub =
-    rcl_get_zero_initialized_publisher();
+static rcl_publisher_t battery_pub;
+static rcl_publisher_t battery_averaged_pub;
 static float battery_buffer_memory[BATTERY_BUFFER_SIZE];
 static CircularBuffer<float> battery_buffer(BATTERY_BUFFER_SIZE,
                                             battery_buffer_memory);
 static bool publish_battery = false;
 
 static leo_msgs__msg__WheelOdom wheel_odom;
-static rcl_publisher_t wheel_odom_pub = rcl_get_zero_initialized_publisher();
+static rcl_publisher_t wheel_odom_pub;
 static bool publish_wheel_odom = false;
 
 static leo_msgs__msg__WheelStates wheel_states;
-static rcl_publisher_t wheel_states_pub = rcl_get_zero_initialized_publisher();
+static rcl_publisher_t wheel_states_pub;
 static bool publish_wheel_states = false;
 
 static leo_msgs__msg__Imu imu;
-static rcl_publisher_t imu_pub = rcl_get_zero_initialized_publisher();
+static rcl_publisher_t imu_pub;
 static bool publish_imu = false;
 
-static rcl_subscription_t twist_sub = rcl_get_zero_initialized_subscription();
+static rcl_subscription_t twist_sub;
 static geometry_msgs__msg__Twist twist_msg;
 
 #define WHEEL_WRAPPER(NAME)                         \
@@ -71,10 +70,8 @@ WHEEL_WRAPPER(RL)
 WHEEL_WRAPPER(FR)
 WHEEL_WRAPPER(RR)
 
-static rcl_service_t reset_odometry_srv = rcl_get_zero_initialized_service(),
-                     firmware_version_srv = rcl_get_zero_initialized_service(),
-                     board_type_srv = rcl_get_zero_initialized_service(),
-                     reset_board_srv = rcl_get_zero_initialized_service();
+static rcl_service_t reset_odometry_srv, firmware_version_srv, board_type_srv,
+    reset_board_srv;
 static std_srvs__srv__Trigger_Request reset_odometry_req, firmware_version_req,
     board_type_req, reset_board_req;
 static std_srvs__srv__Trigger_Response reset_odometry_res, firmware_version_res,
