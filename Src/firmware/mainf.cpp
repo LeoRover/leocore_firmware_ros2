@@ -29,6 +29,8 @@ static rclc_support_t support;
 static rcl_node_t node;
 static rclc_executor_t executor;
 static rclc_parameter_server_t param_server;
+static rcl_timer_t ping_timer, sync_timer;
+static bool uros_agent_connected = false;
 static bool ros_initialized = false;
 
 static std_msgs__msg__Float32 battery;
@@ -141,6 +143,14 @@ static void wheelCmdVelCallback(const void* msgin, void* context) {
 
 static void parameterChangedCallback(Parameter* param) {}
 
+static void pingTimerCallback(rcl_timer_t* timer, int64_t last_call_time) {
+  if (rmw_uros_ping_agent(1000, 3) != RMW_RET_OK) uros_agent_connected = false;
+}
+
+static void syncTimerCallback(rcl_timer_t* timer, int64_t last_call_time) {
+  rmw_uros_sync_session(1000);
+}
+
 static void initMsgs() {
   std_msgs__msg__Float32__init(&battery);
   std_msgs__msg__Float32__init(&battery_averaged);
@@ -161,7 +171,7 @@ static bool initROS() {
 
   // Executor
   RCCHECK(rclc_executor_init(&executor, &support.context,
-                             13 + RCLC_PARAMETER_EXECUTOR_HANDLES_NUMBER,
+                             15 + RCLC_PARAMETER_EXECUTOR_HANDLES_NUMBER,
                              &allocator))
 
   // Publishers
@@ -256,12 +266,21 @@ static bool initROS() {
   // Synchronize clock
   rmw_uros_sync_session(1000);
 
+  RCCHECK(rclc_timer_init_default(&ping_timer, &support, RCL_MS_TO_NS(5000),
+                                  pingTimerCallback))
+  RCCHECK(rclc_executor_add_timer(&executor, &ping_timer))
+  RCCHECK(rclc_timer_init_default(&sync_timer, &support, RCL_MS_TO_NS(60000),
+                                  syncTimerCallback))
+  RCCHECK(rclc_executor_add_timer(&executor, &sync_timer))
+
   return true;
 }
 
 static void finiROS() {
   rclc_executor_fini(&executor);
   rclc_parameter_server_fini(&param_server, &node);
+  (void)!rcl_timer_fini(&ping_timer);
+  (void)!rcl_timer_fini(&sync_timer);
   (void)!rcl_service_fini(&reset_board_srv, &node);
   (void)!rcl_service_fini(&board_type_srv, &node);
   (void)!rcl_service_fini(&firmware_version_srv, &node);
@@ -296,19 +315,24 @@ void setup() {
 }
 
 void loop() {
-  if (rmw_uros_ping_agent(50, 2) == RMW_RET_OK) {
-    if (!ros_initialized) {
-      ros_initialized = initROS();
-      if (!ros_initialized) finiROS();
-    }
-  } else {
+  // Try to connect to uros agent
+  if (!ros_initialized && rmw_uros_ping_agent(1000, 1) == RMW_RET_OK) {
+    ros_initialized = initROS();
     if (ros_initialized) {
+      uros_agent_connected = true;
+      (void)!rcl_timer_call(&sync_timer);
+    } else
       finiROS();
-      ros_initialized = false;
-    }
   }
 
   if (!ros_initialized) return;
+
+  // Handle agent disconnect
+  if (!uros_agent_connected) {
+    finiROS();
+    ros_initialized = false;
+    return;
+  }
 
   rclc_executor_spin_some(&executor, 0);
 
