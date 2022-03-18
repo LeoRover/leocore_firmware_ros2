@@ -24,5 +24,5 @@ struct Parameters : DiffDriveParams {
 
   float battery_min_voltage = 10.0;
 
-  void init(rclc_parameter_server_t* param_server);
+  bool init(rclc_parameter_server_t* param_server);
 };

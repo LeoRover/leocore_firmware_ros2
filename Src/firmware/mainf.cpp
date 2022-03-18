@@ -92,11 +92,6 @@ static ImuReceiver imu_receiver(&IMU_I2C);
 
 static Parameters params;
 
-static void error_loop() {
-  for (;;) {
-  }
-}
-
 static void cmdVelCallback(const void* msgin) {
   const geometry_msgs__msg__Twist* msg =
       (const geometry_msgs__msg__Twist*)msgin;
@@ -157,59 +152,63 @@ static void initMsgs() {
   leo_msgs__msg__Imu__init(&imu);
 }
 
+#define RCCHECK(fn) \
+  if ((fn != RCL_RET_OK)) return false;
+
 static bool initROS() {
-  if (rclc_support_init(&support, 0, NULL, &allocator) != RCL_RET_OK)
-    return false;
+  // Support
+  RCCHECK(rclc_support_init(&support, 0, NULL, &allocator))
 
   // Node
-  rclc_node_init_default(&node, "firmware", "", &support);
+  RCCHECK(rclc_node_init_default(&node, "firmware", "", &support))
 
   // Executor
-  rclc_executor_init(&executor, &support.context,
-                     13 + RCLC_PARAMETER_EXECUTOR_HANDLES_NUMBER, &allocator);
+  RCCHECK(rclc_executor_init(&executor, &support.context,
+                             13 + RCLC_PARAMETER_EXECUTOR_HANDLES_NUMBER,
+                             &allocator))
 
   // Publishers
-  rclc_publisher_init_best_effort(
+  RCCHECK(rclc_publisher_init_best_effort(
       &battery_pub, &node, ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float32),
-      "firmware/battery");
-  rclc_publisher_init_best_effort(
+      "firmware/battery"))
+  RCCHECK(rclc_publisher_init_best_effort(
       &battery_averaged_pub, &node,
       ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float32),
-      "firmware/battery_averaged");
-  rclc_publisher_init_best_effort(
+      "firmware/battery_averaged"))
+  RCCHECK(rclc_publisher_init_best_effort(
       &wheel_odom_pub, &node,
       ROSIDL_GET_MSG_TYPE_SUPPORT(leo_msgs, msg, WheelOdom),
-      "firmware/wheel_odom");
-  rclc_publisher_init_best_effort(
+      "firmware/wheel_odom"))
+  RCCHECK(rclc_publisher_init_best_effort(
       &wheel_states_pub, &node,
       ROSIDL_GET_MSG_TYPE_SUPPORT(leo_msgs, msg, WheelStates),
-      "firmware/wheel_states");
-  rclc_publisher_init_best_effort(
+      "firmware/wheel_states"))
+  RCCHECK(rclc_publisher_init_best_effort(
       &imu_pub, &node, ROSIDL_GET_MSG_TYPE_SUPPORT(leo_msgs, msg, Imu),
-      "firmware/imu");
+      "firmware/imu"))
 
   // Subscriptions
-  rclc_subscription_init_default(
+  RCCHECK(rclc_subscription_init_default(
       &twist_sub, &node, ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, Twist),
-      "cmd_vel");
-  rclc_executor_add_subscription(&executor, &twist_sub, &twist_msg,
-                                 cmdVelCallback, ON_NEW_DATA);
+      "cmd_vel"))
+  RCCHECK(rclc_executor_add_subscription(&executor, &twist_sub, &twist_msg,
+                                         cmdVelCallback, ON_NEW_DATA))
 
 #define WHEEL_INIT_ROS(NAME)                                   \
-  rclc_subscription_init_default(                              \
+  RCCHECK(rclc_subscription_init_default(                      \
       &NAME##_cmd_pwm_sub, &node,                              \
       ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float32),     \
-      NAME##_cmd_pwm_topic);                                   \
-  rclc_executor_add_subscription_with_context(                 \
+      NAME##_cmd_pwm_topic))                                   \
+  RCCHECK(rclc_executor_add_subscription_with_context(         \
       &executor, &NAME##_cmd_pwm_sub, &NAME##_cmd_pwm_msg,     \
-      wheelCmdPWMDutyCallback, &dc.wheel_##NAME, ON_NEW_DATA); \
-  rclc_subscription_init_default(                              \
+      wheelCmdPWMDutyCallback, &dc.wheel_##NAME, ON_NEW_DATA)) \
+  RCCHECK(rclc_subscription_init_default(                      \
       &NAME##_cmd_vel_sub, &node,                              \
       ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float32),     \
-      NAME##_cmd_vel_topic);                                   \
-  rclc_executor_add_subscription_with_context(                 \
+      NAME##_cmd_vel_topic))                                   \
+  RCCHECK(rclc_executor_add_subscription_with_context(         \
       &executor, &NAME##_cmd_vel_sub, &NAME##_cmd_vel_msg,     \
-      wheelCmdVelCallback, &dc.wheel_##NAME, ON_NEW_DATA);
+      wheelCmdVelCallback, &dc.wheel_##NAME, ON_NEW_DATA))
 
   WHEEL_INIT_ROS(FL)
   WHEEL_INIT_ROS(RL)
@@ -217,39 +216,45 @@ static bool initROS() {
   WHEEL_INIT_ROS(RR)
 
   // Services
-  rclc_service_init_default(&reset_odometry_srv, &node,
-                            ROSIDL_GET_SRV_TYPE_SUPPORT(std_srvs, srv, Trigger),
-                            "firmware/reset_odometry");
-  rclc_executor_add_service(&executor, &reset_odometry_srv, &reset_odometry_req,
-                            &reset_odometry_res, resetOdometryCallback);
-
-  rclc_service_init_default(&firmware_version_srv, &node,
-                            ROSIDL_GET_SRV_TYPE_SUPPORT(std_srvs, srv, Trigger),
-                            "firmware/get_firmware_version");
-  rclc_executor_add_service(&executor, &firmware_version_srv,
-                            &firmware_version_req, &firmware_version_res,
-                            getFirmwareVersionCallback);
-
-  rclc_service_init_default(&board_type_srv, &node,
-                            ROSIDL_GET_SRV_TYPE_SUPPORT(std_srvs, srv, Trigger),
-                            "firmware/get_board_type");
-  rclc_executor_add_service(&executor, &board_type_srv, &board_type_req,
-                            &board_type_res, getBoardTypeCallback);
-
-  rclc_service_init_default(&reset_board_srv, &node,
-                            ROSIDL_GET_SRV_TYPE_SUPPORT(std_srvs, srv, Trigger),
-                            "firmware/reset_board");
-  rclc_executor_add_service(&executor, &reset_board_srv, &reset_board_req,
-                            &reset_board_res, resetBoardCallback);
+  RCCHECK(rclc_service_init_default(
+      &reset_odometry_srv, &node,
+      ROSIDL_GET_SRV_TYPE_SUPPORT(std_srvs, srv, Trigger),
+      "firmware/reset_odometry"))
+  RCCHECK(rclc_executor_add_service(&executor, &reset_odometry_srv,
+                                    &reset_odometry_req, &reset_odometry_res,
+                                    resetOdometryCallback))
+  RCCHECK(rclc_service_init_default(
+      &firmware_version_srv, &node,
+      ROSIDL_GET_SRV_TYPE_SUPPORT(std_srvs, srv, Trigger),
+      "firmware/get_firmware_version"))
+  RCCHECK(rclc_executor_add_service(
+      &executor, &firmware_version_srv, &firmware_version_req,
+      &firmware_version_res, getFirmwareVersionCallback))
+  RCCHECK(rclc_service_init_default(
+      &board_type_srv, &node,
+      ROSIDL_GET_SRV_TYPE_SUPPORT(std_srvs, srv, Trigger),
+      "firmware/get_board_type"))
+  RCCHECK(rclc_executor_add_service(&executor, &board_type_srv, &board_type_req,
+                                    &board_type_res, getBoardTypeCallback))
+  RCCHECK(rclc_service_init_default(
+      &reset_board_srv, &node,
+      ROSIDL_GET_SRV_TYPE_SUPPORT(std_srvs, srv, Trigger),
+      "firmware/reset_board"))
+  RCCHECK(rclc_executor_add_service(&executor, &reset_board_srv,
+                                    &reset_board_req, &reset_board_res,
+                                    resetBoardCallback))
 
   // Parameter Server
   static rclc_parameter_options_t param_options;
   param_options.max_params = 11;
   param_options.notify_changed_over_dds = true;
-  rclc_parameter_server_init_with_option(&param_server, &node, &param_options);
-  rclc_executor_add_parameter_server(&executor, &param_server,
-                                     parameterChangedCallback);
-  params.init(&param_server);
+  RCCHECK(rclc_parameter_server_init_with_option(&param_server, &node,
+                                                 &param_options))
+  RCCHECK(rclc_executor_add_parameter_server(&executor, &param_server,
+                                             parameterChangedCallback))
+  if (!params.init(&param_server)) return false;
+
+  RCCHECK(rclc_executor_prepare(&executor))
 
   // Synchronize clock
   rmw_uros_sync_session(1000);
@@ -257,11 +262,35 @@ static bool initROS() {
   return true;
 }
 
+static void finiROS() {
+  rclc_executor_fini(&executor);
+  rclc_parameter_server_fini(&param_server, &node);
+  (void)!rcl_service_fini(&reset_board_srv, &node);
+  (void)!rcl_service_fini(&board_type_srv, &node);
+  (void)!rcl_service_fini(&firmware_version_srv, &node);
+  (void)!rcl_service_fini(&reset_odometry_srv, &node);
+  (void)!rcl_subscription_fini(&twist_sub, &node);
+  (void)!rcl_subscription_fini(&FL_cmd_vel_sub, &node);
+  (void)!rcl_subscription_fini(&RL_cmd_vel_sub, &node);
+  (void)!rcl_subscription_fini(&FR_cmd_vel_sub, &node);
+  (void)!rcl_subscription_fini(&RR_cmd_vel_sub, &node);
+  (void)!rcl_subscription_fini(&FL_cmd_pwm_sub, &node);
+  (void)!rcl_subscription_fini(&RL_cmd_pwm_sub, &node);
+  (void)!rcl_subscription_fini(&FR_cmd_pwm_sub, &node);
+  (void)!rcl_subscription_fini(&RR_cmd_pwm_sub, &node);
+  (void)!rcl_publisher_fini(&imu_pub, &node);
+  (void)!rcl_publisher_fini(&wheel_states_pub, &node);
+  (void)!rcl_publisher_fini(&wheel_odom_pub, &node);
+  (void)!rcl_publisher_fini(&battery_averaged_pub, &node);
+  (void)!rcl_publisher_fini(&battery_pub, &node);
+  (void)!rcl_node_fini(&node);
+  rclc_support_fini(&support);
+}
+
 void setup() {
   rmw_uros_set_uart_transport(&huart1);
 
   initMsgs();
-  ros_initialized = initROS();
 
   imu_receiver.init();
 
@@ -270,26 +299,40 @@ void setup() {
 }
 
 void loop() {
-  if (rclc_executor_spin_some(&executor, 0) != RCL_RET_OK) error_loop();
+  if (rmw_uros_ping_agent(50, 2) == RMW_RET_OK) {
+    if (!ros_initialized) {
+      ros_initialized = initROS();
+      if (!ros_initialized) finiROS();
+    }
+  } else {
+    if (ros_initialized) {
+      finiROS();
+      ros_initialized = false;
+    }
+  }
+
+  if (!ros_initialized) return;
+
+  rclc_executor_spin_some(&executor, 0);
 
   if (publish_battery) {
-    rcl_publish(&battery_pub, &battery, NULL);
-    rcl_publish(&battery_averaged_pub, &battery_averaged, NULL);
+    (void)!rcl_publish(&battery_pub, &battery, NULL);
+    (void)!rcl_publish(&battery_averaged_pub, &battery_averaged, NULL);
     publish_battery = false;
   }
 
   if (publish_wheel_odom) {
-    rcl_publish(&wheel_odom_pub, &wheel_odom, NULL);
+    (void)!rcl_publish(&wheel_odom_pub, &wheel_odom, NULL);
     publish_wheel_odom = false;
   }
 
   if (publish_wheel_states) {
-    rcl_publish(&wheel_states_pub, &wheel_states, NULL);
+    (void)!rcl_publish(&wheel_states_pub, &wheel_states, NULL);
     publish_wheel_states = false;
   }
 
   if (publish_imu) {
-    rcl_publish(&imu_pub, &imu, NULL);
+    (void)!rcl_publish(&imu_pub, &imu, NULL);
     publish_imu = false;
   }
 }
