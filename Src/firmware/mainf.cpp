@@ -146,7 +146,7 @@ static void parameterChangedCallback(Parameter* param) {
 }
 
 static void pingTimerCallback(rcl_timer_t* timer, int64_t last_call_time) {
-  if (rmw_uros_ping_agent(1000, 3) != RMW_RET_OK) uros_agent_connected = false;
+  if (rmw_uros_ping_agent(200, 3) != RMW_RET_OK) uros_agent_connected = false;
 }
 
 static void syncTimerCallback(rcl_timer_t* timer, int64_t last_call_time) {
@@ -383,7 +383,11 @@ void update() {
   if (battery_avg < params.battery_min_voltage) {
     if (cnt % 10 == 0) gpio_toggle(LED);
   } else {
-    gpio_reset(LED);
+    if (!ros_initialized) {
+      if (cnt % 50 == 0) gpio_toggle(LED);
+    } else {
+      gpio_reset(LED);
+    }
   }
 
   if (!ros_initialized) return;
