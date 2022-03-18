@@ -10,8 +10,8 @@
 #include "firmware/hal_compat.hpp"
 #include "firmware/motor_controller.hpp"
 
-// UART used for rosserial communication
-static UART_HandleTypeDef& ROSSERIAL_UART = huart1;
+// UART used for micro-ROS communication
+static UART_HandleTypeDef& UROS_UART = huart1;
 
 // I2C used for IMU communication
 static I2C_HandleTypeDef& IMU_I2C = hi2c1;

@@ -285,7 +285,7 @@ static void finiROS() {
 }
 
 void setup() {
-  rmw_uros_set_uart_transport(&huart1);
+  rmw_uros_set_uart_transport(&UROS_UART);
 
   initMsgs();
 
@@ -417,7 +417,7 @@ void update() {
 }
 
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef* huart) {
-  if (huart == &ROSSERIAL_UART) {
+  if (huart == &UROS_UART) {
     uart_transfer_complete_callback(huart);
   }
 }
