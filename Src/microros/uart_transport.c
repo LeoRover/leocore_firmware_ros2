@@ -7,20 +7,33 @@
 #define DMA_TBUFFER_SIZE 2048
 
 static uint8_t dma_rbuffer[DMA_RBUFFER_SIZE];
-static uint16_t dma_rhead = 0, dma_rtail = 0;
+static uint16_t dma_rhead, dma_rtail;
 
 static uint8_t dma_tbuffer[DMA_TBUFFER_SIZE];
-static volatile uint16_t dma_thead = 0, dma_thead_next = 0, dma_ttail = 0;
+static volatile uint16_t dma_thead, dma_thead_next, dma_ttail;
+
+static int open_count = 0;
 
 bool uart_transport_open(struct uxrCustomTransport* transport) {
   UART_HandleTypeDef* uart = (UART_HandleTypeDef*)transport->args;
-  HAL_UART_Receive_DMA(uart, dma_rbuffer, DMA_RBUFFER_SIZE);
+
+  if (open_count == 0) {
+    dma_rhead = dma_rtail = dma_thead = dma_thead_next = dma_ttail = 0;
+    HAL_UART_Receive_DMA(uart, dma_rbuffer, DMA_RBUFFER_SIZE);
+  }
+  open_count++;
+
   return true;
 }
 
 bool uart_transport_close(struct uxrCustomTransport* transport) {
   UART_HandleTypeDef* uart = (UART_HandleTypeDef*)transport->args;
-  HAL_UART_DMAStop(uart);
+
+  open_count--;
+  if (open_count == 0) {
+    HAL_UART_DMAStop(uart);
+  }
+
   return true;
 }
 
