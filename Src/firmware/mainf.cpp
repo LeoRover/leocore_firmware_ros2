@@ -57,14 +57,12 @@ static bool publish_imu = false;
 static rcl_subscription_t twist_sub;
 static geometry_msgs__msg__Twist twist_msg;
 
-#define WHEEL_WRAPPER(NAME)                         \
-  static const char* NAME##_cmd_pwm_topic =         \
-      "firmware/wheel_" #NAME "/cmd_pwm_duty";      \
-  static const char* NAME##_cmd_vel_topic =         \
-      "firmware/wheel_" #NAME "/cmd_velocity";      \
-  static rcl_subscription_t NAME##_cmd_pwm_sub;     \
-  static rcl_subscription_t NAME##_cmd_vel_sub;     \
-  static std_msgs__msg__Float32 NAME##_cmd_pwm_msg; \
+#define WHEEL_WRAPPER(NAME)                                                   \
+  static const char* NAME##_cmd_pwm_topic = "~/wheel_" #NAME "/cmd_pwm_duty"; \
+  static const char* NAME##_cmd_vel_topic = "~/wheel_" #NAME "/cmd_velocity"; \
+  static rcl_subscription_t NAME##_cmd_pwm_sub;                               \
+  static rcl_subscription_t NAME##_cmd_vel_sub;                               \
+  static std_msgs__msg__Float32 NAME##_cmd_pwm_msg;                           \
   static std_msgs__msg__Float32 NAME##_cmd_vel_msg;
 
 WHEEL_WRAPPER(FL)
@@ -179,22 +177,21 @@ static bool initROS() {
   // Publishers
   RCCHECK(rclc_publisher_init_best_effort(
       &battery_pub, &node, ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float32),
-      "firmware/battery"))
+      "~/battery"))
   RCCHECK(rclc_publisher_init_best_effort(
       &battery_averaged_pub, &node,
       ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float32),
-      "firmware/battery_averaged"))
+      "~/battery_averaged"))
   RCCHECK(rclc_publisher_init_best_effort(
       &wheel_odom_pub, &node,
-      ROSIDL_GET_MSG_TYPE_SUPPORT(leo_msgs, msg, WheelOdom),
-      "firmware/wheel_odom"))
+      ROSIDL_GET_MSG_TYPE_SUPPORT(leo_msgs, msg, WheelOdom), "~/wheel_odom"))
   RCCHECK(rclc_publisher_init_best_effort(
       &wheel_states_pub, &node,
       ROSIDL_GET_MSG_TYPE_SUPPORT(leo_msgs, msg, WheelStates),
-      "firmware/wheel_states"))
+      "~/wheel_states"))
   RCCHECK(rclc_publisher_init_best_effort(
       &imu_pub, &node, ROSIDL_GET_MSG_TYPE_SUPPORT(leo_msgs, msg, Imu),
-      "firmware/imu"))
+      "~/imu"))
 
   // Subscriptions
   RCCHECK(rclc_subscription_init_default(
@@ -227,28 +224,25 @@ static bool initROS() {
   // Services
   RCCHECK(rclc_service_init_default(
       &reset_odometry_srv, &node,
-      ROSIDL_GET_SRV_TYPE_SUPPORT(std_srvs, srv, Trigger),
-      "firmware/reset_odometry"))
+      ROSIDL_GET_SRV_TYPE_SUPPORT(std_srvs, srv, Trigger), "~/reset_odometry"))
   RCCHECK(rclc_executor_add_service(&executor, &reset_odometry_srv,
                                     &reset_odometry_req, &reset_odometry_res,
                                     resetOdometryCallback))
   RCCHECK(rclc_service_init_default(
       &firmware_version_srv, &node,
       ROSIDL_GET_SRV_TYPE_SUPPORT(std_srvs, srv, Trigger),
-      "firmware/get_firmware_version"))
+      "~/get_firmware_version"))
   RCCHECK(rclc_executor_add_service(
       &executor, &firmware_version_srv, &firmware_version_req,
       &firmware_version_res, getFirmwareVersionCallback))
   RCCHECK(rclc_service_init_default(
       &board_type_srv, &node,
-      ROSIDL_GET_SRV_TYPE_SUPPORT(std_srvs, srv, Trigger),
-      "firmware/get_board_type"))
+      ROSIDL_GET_SRV_TYPE_SUPPORT(std_srvs, srv, Trigger), "~/get_board_type"))
   RCCHECK(rclc_executor_add_service(&executor, &board_type_srv, &board_type_req,
                                     &board_type_res, getBoardTypeCallback))
   RCCHECK(rclc_service_init_default(
       &reset_board_srv, &node,
-      ROSIDL_GET_SRV_TYPE_SUPPORT(std_srvs, srv, Trigger),
-      "firmware/reset_board"))
+      ROSIDL_GET_SRV_TYPE_SUPPORT(std_srvs, srv, Trigger), "~/reset_board"))
   RCCHECK(rclc_executor_add_service(&executor, &reset_board_srv,
                                     &reset_board_req, &reset_board_res,
                                     resetBoardCallback))
