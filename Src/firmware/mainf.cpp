@@ -253,9 +253,9 @@ static bool initROS() {
   param_options.notify_changed_over_dds = true;
   RCCHECK(rclc_parameter_server_init_with_option(&param_server, &node,
                                                  &param_options))
+  if (!params.init(&param_server)) return false;
   RCCHECK(rclc_executor_add_parameter_server(&executor, &param_server,
                                              parameterChangedCallback))
-  if (!params.init(&param_server)) return false;
 
   RCCHECK(rclc_executor_prepare(&executor))
 
