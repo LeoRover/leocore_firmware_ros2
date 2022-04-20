@@ -1,0 +1,5 @@
+repositories:
+  leo_common:
+    type: git
+    url: https://github.com/LeoRover/leo_common-ros2.git
+    version: foxy
