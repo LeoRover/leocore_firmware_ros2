@@ -31,7 +31,8 @@ inline rcl_ret_t init_parameter_double(rclc_parameter_server_t* param_server,
 }
 
 inline rcl_ret_t init_parameter_int(rclc_parameter_server_t* param_server,
-                                    const char* param_name, int default_value) {
+                                    const char* param_name,
+                                    int64_t default_value) {
   rcl_ret_t ret =
       rclc_add_parameter(param_server, param_name, RCLC_PARAMETER_INT);
   if (ret == RCL_RET_OK)
@@ -93,8 +94,10 @@ void Parameters::update(rclc_parameter_server_t* param_server) {
                        &dd_wheel_separation);
   get_parameter_double(param_server, dd_angular_velocity_multiplier_param_name,
                        &dd_angular_velocity_multiplier);
+  int64_t input_timeout;
   rclc_parameter_get_int(param_server, dd_input_timeout_param_name,
-                         &dd_input_timeout);
+                         &input_timeout);
+  dd_input_timeout = static_cast<int>(input_timeout);
   get_parameter_double(param_server, battery_min_voltage_param_name,
                        &battery_min_voltage);
 }
