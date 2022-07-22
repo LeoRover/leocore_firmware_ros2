@@ -22,8 +22,12 @@ const uint16_t PWM_RANGE = 1000;
 // Number of encoder readings to remember when estimating the wheel velocity
 const uint32_t ENCODER_BUFFER_SIZE = 10;
 
+// The period (in number of calls to the update() function) at which the battery
+// voltage is probed
+const uint8_t BATTERY_PROBE_PERIOD = 10;
+
 // Number of battery voltage readings to average
-const uint32_t BATTERY_BUFFER_SIZE = 3000;
+const uint32_t BATTERY_BUFFER_SIZE = 300;
 
 // Informative LED GPIO
 const GPIO LED = {LED_GPIO_Port, LED_Pin};
@@ -31,7 +35,7 @@ const GPIO LED = {LED_GPIO_Port, LED_Pin};
 // The period (in milliseconds) between calls to the update() function
 const uint16_t UPDATE_PERIOD = 10;
 
-// The periods (in number of calls to the update() function), at which different
+// The periods (in number of calls to the update() function) at which different
 // data is publihed on the ROS topics
 const uint8_t BATTERY_PUB_PERIOD = 10;
 const uint8_t JOINTS_PUB_PERIOD = 5;

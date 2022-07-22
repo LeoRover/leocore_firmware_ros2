@@ -371,10 +371,13 @@ void update() {
   static float battery_sum = 0.0F;
   static float battery_avg = 0.0F;
   float battery_new = static_cast<float>(BATTERY_ADC) * BATTERY_ADC_TO_VOLTAGE;
-  battery_sum += battery_new;
-  battery_sum -= battery_buffer.push_back(battery_new);
-  battery_avg =
-      battery_sum / static_cast<float>(std::min(BATTERY_BUFFER_SIZE, cnt));
+
+  if (cnt % BATTERY_PROBE_PERIOD == 0) {
+    battery_sum += battery_new;
+    battery_sum -= battery_buffer.push_back(battery_new);
+    battery_avg =
+        battery_sum / static_cast<float>(std::min(BATTERY_BUFFER_SIZE, cnt));
+  }
 
   if (battery_avg < params.battery_min_voltage) {
     if (cnt % 10 == 0) gpio_toggle(LED);
@@ -393,7 +396,7 @@ void update() {
   dc.update(UPDATE_PERIOD);
 
   if (cnt % BATTERY_PUB_PERIOD == 0 && !publish_battery) {
-    battery.data = battery_new;
+    battery.data = static_cast<float>(BATTERY_ADC) * BATTERY_ADC_TO_VOLTAGE;
     battery_averaged.data = battery_avg;
 
     publish_battery = true;
