@@ -1,3 +1,5 @@
+#include <micro_ros_platformio.h>
+
 #include <rcl/rcl.h>
 #include <rclc/executor.h>
 #include <rclc/rclc.h>
@@ -17,8 +19,6 @@
 #include "wheel_controller.hpp"
 
 #include "mainf.h"
-
-#include "microros/uart_transport.h"
 
 #include "firmware/configuration.hpp"
 #include "firmware/imu_receiver.hpp"
@@ -301,8 +301,19 @@ static void finiROS() {
   rclc_support_fini(&support);
 }
 
+static uint8_t uart_rbuffer[2048];
+static uint8_t uart_tbuffer[2048];
+
+static DMAStream stream = {
+    .uart = &UROS_UART,
+    .rbuffer_size = 2048,
+    .rbuffer = uart_rbuffer,
+    .tbuffer_size = 2048,
+    .tbuffer = uart_tbuffer,
+};
+
 void setup() {
-  rmw_uros_set_uart_transport(&UROS_UART);
+  set_microros_serial_transports(stream);
 
   initMsgs();
 
@@ -447,6 +458,6 @@ void update() {
 
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef* huart) {
   if (huart == &UROS_UART) {
-    uart_transfer_complete_callback(huart);
+    uart_transfer_complete_callback(&stream);
   }
 }
