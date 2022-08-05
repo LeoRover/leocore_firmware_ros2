@@ -313,7 +313,7 @@ static DMAStream stream = {
 };
 
 void setup() {
-  set_microros_serial_transports(stream);
+  set_microros_serial_transports(&stream);
 
   initMsgs();
 
