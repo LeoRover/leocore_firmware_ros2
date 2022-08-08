@@ -259,17 +259,16 @@ static bool initROS() {
   RCCHECK(rclc_executor_add_parameter_server(&executor, &param_server,
                                              parameterChangedCallback))
 
-  RCCHECK(rclc_executor_prepare(&executor))
-
-  // Synchronize clock
-  rmw_uros_sync_session(1000);
-
+  // Timers
   RCCHECK(rclc_timer_init_default(&ping_timer, &support, RCL_MS_TO_NS(5000),
                                   pingTimerCallback))
   RCCHECK(rclc_executor_add_timer(&executor, &ping_timer))
   RCCHECK(rclc_timer_init_default(&sync_timer, &support, RCL_MS_TO_NS(60000),
                                   syncTimerCallback))
   RCCHECK(rclc_executor_add_timer(&executor, &sync_timer))
+
+  // Allocate memory
+  RCCHECK(rclc_executor_prepare(&executor))
 
   return true;
 }
