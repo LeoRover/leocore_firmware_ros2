@@ -36,4 +36,4 @@ jobs:
           python -m pip install --upgrade pip
           pip install --upgrade platformio
       - name: Run PlatformIO
-        run: pio run -e genericSTM32F401RC
+        run: pio run -e leocore
