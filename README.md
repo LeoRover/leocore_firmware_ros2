@@ -29,7 +29,7 @@ Connect the ST-Link to the pins on the [LeoCore] debug pin header, then run the 
 You can also run the GDB debugger by running the `PIO Debug` launch configuration (or just clicking `F5`).
 
 ### Using RPi on Leo Rover
-Upload the `.pio/build/genericSTM32F401RC/firmware.bin` to Leo Rover, then, on the robot, run:
+Upload the `.pio/build/leocore/firmware.bin` to Leo Rover, then, on the robot, run:
 ```
 ros2 run leo_fw flash firmware.bin
 ```
