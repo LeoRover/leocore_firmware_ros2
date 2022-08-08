@@ -387,7 +387,8 @@ void update() {
     battery_sum += battery_new;
     battery_sum -= battery_buffer.push_back(battery_new);
     battery_avg =
-        battery_sum / static_cast<float>(std::min(BATTERY_BUFFER_SIZE, cnt));
+        battery_sum / static_cast<float>(std::min(BATTERY_BUFFER_SIZE,
+                                                  cnt / BATTERY_PROBE_PERIOD));
   }
 
   if (battery_avg < params.battery_min_voltage) {
