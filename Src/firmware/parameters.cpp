@@ -94,10 +94,10 @@ void Parameters::update(rclc_parameter_server_t* param_server) {
                        &dd_wheel_separation);
   get_parameter_double(param_server, dd_angular_velocity_multiplier_param_name,
                        &dd_angular_velocity_multiplier);
-  int64_t input_timeout;
+//   int64_t input_timeout;
   rclc_parameter_get_int(param_server, dd_input_timeout_param_name,
-                         &input_timeout);
-  dd_input_timeout = static_cast<int>(input_timeout);
+                         &dd_input_timeout);
+//   dd_input_timeout = static_cast<int>(input_timeout);
   get_parameter_double(param_server, battery_min_voltage_param_name,
                        &battery_min_voltage);
 }

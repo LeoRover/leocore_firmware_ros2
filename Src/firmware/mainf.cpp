@@ -139,10 +139,9 @@ static void wheelCmdVelCallback(const void* msgin, void* context) {
   wheel->setTargetVelocity(msg->data);
 }
 
-static bool parameterChangedCallback(const Parameter*, const Parameter*,
-                                     void*) {
+static void parameterChangedCallback(Parameter*) {
   params.update(&param_server);
-  return true;
+  // return true;
 }
 
 static void pingTimerCallback(rcl_timer_t* timer, int64_t last_call_time) {
@@ -173,7 +172,7 @@ static bool initROS() {
 
   // Executor
   RCCHECK(rclc_executor_init(&executor, &support.context,
-                             15 + RCLC_EXECUTOR_PARAMETER_SERVER_HANDLES,
+                             15 + RCLC_PARAMETER_EXECUTOR_HANDLES_NUMBER,
                              &allocator))
 
   // Publishers
