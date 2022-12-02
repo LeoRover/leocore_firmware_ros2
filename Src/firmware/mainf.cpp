@@ -16,7 +16,7 @@
 #include <std_msgs/msg/float32.h>
 #include <std_srvs/srv/trigger.h>
 
-#include "wheel_controller.hpp"
+#include "diff_drive_lib/wheel_controller.hpp"
 
 #include "mainf.h"
 
@@ -38,8 +38,8 @@ static std_msgs__msg__Float32 battery_averaged;
 static rcl_publisher_t battery_pub;
 static rcl_publisher_t battery_averaged_pub;
 static float battery_buffer_memory[BATTERY_BUFFER_SIZE];
-static CircularBuffer<float> battery_buffer(BATTERY_BUFFER_SIZE,
-                                            battery_buffer_memory);
+static diff_drive_lib::CircularBuffer<float> battery_buffer(
+    BATTERY_BUFFER_SIZE, battery_buffer_memory);
 static bool publish_battery = false;
 
 static leo_msgs__msg__WheelOdom wheel_odom;
@@ -84,7 +84,7 @@ MotorController MotB(MOT_B_CONFIG);
 MotorController MotC(MOT_C_CONFIG);
 MotorController MotD(MOT_D_CONFIG);
 
-static DiffDriveController dc(DD_CONFIG);
+static diff_drive_lib::DiffDriveController dc(DD_CONFIG);
 static ImuReceiver imu_receiver(&IMU_I2C);
 
 static Parameters params;
@@ -127,14 +127,16 @@ static void getBoardTypeCallback(const void* reqin, void* resin) {
 
 static void wheelCmdPWMDutyCallback(const void* msgin, void* context) {
   const std_msgs__msg__Float32* msg = (std_msgs__msg__Float32*)msgin;
-  WheelController* wheel = (WheelController*)context;
+  diff_drive_lib::WheelController* wheel =
+      (diff_drive_lib::WheelController*)context;
   wheel->disable();
   wheel->motor.setPWMDutyCycle(msg->data);
 }
 
 static void wheelCmdVelCallback(const void* msgin, void* context) {
   const std_msgs__msg__Float32* msg = (std_msgs__msg__Float32*)msgin;
-  WheelController* wheel = (WheelController*)context;
+  diff_drive_lib::WheelController* wheel =
+      (diff_drive_lib::WheelController*)context;
   wheel->enable();
   wheel->setTargetVelocity(msg->data);
 }

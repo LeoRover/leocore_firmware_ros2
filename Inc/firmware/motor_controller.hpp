@@ -4,7 +4,7 @@
 
 #include "firmware/hal_compat.hpp"
 
-#include "motor_controller_interface.hpp"
+#include "diff_drive_lib/motor_controller_interface.hpp"
 
 struct MotorConfiguration {
   GPIO nsleep, phase, mode, fault;
@@ -14,7 +14,7 @@ struct MotorConfiguration {
   bool reverse_polarity;
 };
 
-class MotorController : public MotorControllerInterface {
+class MotorController : public diff_drive_lib::MotorControllerInterface {
  public:
   MotorController(const MotorConfiguration &config) : config_(config){};
 

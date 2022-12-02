@@ -5,7 +5,7 @@
 #include "mainf.h"
 #include "usart.h"
 
-#include "diff_drive_controller.hpp"
+#include "diff_drive_lib/diff_drive_controller.hpp"
 
 #include "firmware/hal_compat.hpp"
 #include "firmware/motor_controller.hpp"
@@ -103,7 +103,7 @@ extern MotorController MotB;
 extern MotorController MotC;
 extern MotorController MotD;
 
-const DiffDriveConfiguration DD_CONFIG = {
+const diff_drive_lib::DiffDriveConfiguration DD_CONFIG = {
     .wheel_FL_conf =
         {
             .motor = MotC,
