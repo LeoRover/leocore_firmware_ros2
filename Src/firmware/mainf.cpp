@@ -144,6 +144,7 @@ static void wheelCmdVelCallback(const void* msgin, void* context) {
 static bool parameterChangedCallback(const Parameter*, const Parameter*,
                                      void*) {
   params.update(&param_server);
+  dc.updateParams(params);
   return true;
 }
 
