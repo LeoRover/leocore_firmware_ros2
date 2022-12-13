@@ -24,9 +24,10 @@
 
 #include "firmware/configuration.hpp"
 #include "firmware/imu_receiver.hpp"
+#include "firmware/microros_allocators.hpp"
 #include "firmware/parameters.hpp"
 
-static rcl_allocator_t allocator = rcl_get_default_allocator();
+static rcl_allocator_t allocator = rcutils_get_zero_initialized_allocator();
 static rclc_support_t support;
 static rcl_node_t node;
 static rclc_executor_t executor;
@@ -303,6 +304,8 @@ static void finiROS() {
   (void)!rcl_publisher_fini(&battery_pub, &node);
   (void)!rcl_node_fini(&node);
   rclc_support_fini(&support);
+
+  free_all_heap();
 }
 
 static uint8_t uart_rbuffer[2048];
@@ -317,6 +320,13 @@ static DMAStream stream = {
 };
 
 void setup() {
+  allocator.allocate = microros_allocate;
+  allocator.deallocate = microros_deallocate;
+  allocator.reallocate = microros_reallocate;
+  allocator.zero_allocate = microros_zero_allocate;
+
+  (void)!rcutils_set_default_allocator(&allocator);
+
   set_microros_serial_transports(&stream);
 
   initMsgs();

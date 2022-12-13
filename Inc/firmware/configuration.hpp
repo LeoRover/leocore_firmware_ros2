@@ -10,6 +10,9 @@
 #include "firmware/hal_compat.hpp"
 #include "firmware/motor_controller.hpp"
 
+// Size of the heap memory used for micro-ROS entities
+const uint32_t UROS_HEAP_SIZE = 25000;
+
 // UART used for micro-ROS communication
 static UART_HandleTypeDef& UROS_UART = huart1;
 
