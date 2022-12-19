@@ -352,6 +352,7 @@ void loop() {
 
   // Handle agent disconnect
   if (!uros_agent_connected) {
+    dc.disable();
     finiROS();
     ros_initialized = false;
     return;
