@@ -91,6 +91,7 @@ static diff_drive_lib::DiffDriveController dc(DD_CONFIG);
 static ImuReceiver imu_receiver(&IMU_I2C);
 
 static Parameters params;
+static std::atomic_bool reload_parameters(false);
 
 static void cmdVelCallback(const void* msgin) {
   const geometry_msgs__msg__Twist* msg =
@@ -146,8 +147,7 @@ static void wheelCmdVelCallback(const void* msgin, void* context) {
 
 static bool parameterChangedCallback(const Parameter*, const Parameter*,
                                      void*) {
-  params.update(&param_server);
-  dc.updateParams(params);
+  reload_parameters = true;
   return true;
 }
 
@@ -379,6 +379,11 @@ void loop() {
   if (publish_imu) {
     (void)!rcl_publish(&imu_pub, &imu, NULL);
     publish_imu = false;
+  }
+
+  if (reload_parameters.exchange(false)) {
+    params.update(&param_server);
+    dc.updateParams(params);
   }
 }
 
