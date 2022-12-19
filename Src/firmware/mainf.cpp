@@ -61,12 +61,14 @@ static std::atomic_bool publish_imu(false);
 static rcl_subscription_t twist_sub;
 static geometry_msgs__msg__Twist twist_msg;
 
-#define WHEEL_WRAPPER(NAME)                                                   \
-  static const char* NAME##_cmd_pwm_topic = "~/wheel_" #NAME "/cmd_pwm_duty"; \
-  static const char* NAME##_cmd_vel_topic = "~/wheel_" #NAME "/cmd_velocity"; \
-  static rcl_subscription_t NAME##_cmd_pwm_sub;                               \
-  static rcl_subscription_t NAME##_cmd_vel_sub;                               \
-  static std_msgs__msg__Float32 NAME##_cmd_pwm_msg;                           \
+#define WHEEL_WRAPPER(NAME)                         \
+  constexpr const char* NAME##_cmd_pwm_topic =      \
+      "~/wheel_" #NAME "/cmd_pwm_duty";             \
+  constexpr const char* NAME##_cmd_vel_topic =      \
+      "~/wheel_" #NAME "/cmd_velocity";             \
+  static rcl_subscription_t NAME##_cmd_pwm_sub;     \
+  static rcl_subscription_t NAME##_cmd_vel_sub;     \
+  static std_msgs__msg__Float32 NAME##_cmd_pwm_msg; \
   static std_msgs__msg__Float32 NAME##_cmd_vel_msg;
 
 WHEEL_WRAPPER(FL)
