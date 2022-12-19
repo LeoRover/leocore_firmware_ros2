@@ -28,6 +28,7 @@
 #include "firmware/parameters.hpp"
 
 static rcl_allocator_t allocator = rcutils_get_zero_initialized_allocator();
+static rcl_init_options_t init_options;
 static rclc_support_t support;
 static rcl_node_t node;
 static rclc_executor_t executor;
@@ -171,11 +172,17 @@ static void initMsgs() {
   if ((fn != RCL_RET_OK)) return false;
 
 static bool initROS() {
+  // Init options
+  init_options = rcl_get_zero_initialized_init_options();
+  RCCHECK(rcl_init_options_init(&init_options, allocator))
+  RCCHECK(rcl_init_options_set_domain_id(&init_options, ROS_DOMAIN_ID))
+
   // Support
-  RCCHECK(rclc_support_init(&support, 0, NULL, &allocator))
+  RCCHECK(rclc_support_init_with_options(&support, 0, NULL, &init_options,
+                                         &allocator))
 
   // Node
-  RCCHECK(rclc_node_init_default(&node, "firmware", "", &support))
+  RCCHECK(rclc_node_init_default(&node, ROS_NODE_NAME, ROS_NAMESPACE, &support))
 
   // Executor
   RCCHECK(rclc_executor_init(&executor, &support.context,
@@ -303,6 +310,7 @@ static void finiROS() {
   (void)!rcl_publisher_fini(&battery_averaged_pub, &node);
   (void)!rcl_publisher_fini(&battery_pub, &node);
   (void)!rcl_node_fini(&node);
+  (void)!rcl_init_options_fini(&init_options);
   rclc_support_fini(&support);
 
   free_all_heap();

@@ -16,6 +16,15 @@ const uint32_t UROS_HEAP_SIZE = 25000;
 // UART used for micro-ROS communication
 static UART_HandleTypeDef& UROS_UART = huart1;
 
+// Domain ID used for ROS communication
+constexpr size_t ROS_DOMAIN_ID = 0;
+
+// Name of the ROS node
+constexpr char ROS_NODE_NAME[] = "firmware";
+
+// Namespace of the ROS node
+constexpr char ROS_NAMESPACE[] = "";
+
 // I2C used for IMU communication
 static I2C_HandleTypeDef& IMU_I2C = hi2c1;
 
