@@ -23,8 +23,8 @@ jobs:
           python-version: '3.10'
       - name: Install PlatformIO environment
         run: |
-          apt-get update
-          apt-get install -y cmake
+          sudo apt-get update
+          sudo apt-get install -y cmake
           curl -fsSL -o get-platformio.py https://raw.githubusercontent.com/platformio/platformio-core-installer/master/get-platformio.py
           python3 get-platformio.py
       - name: Run PlatformIO
