@@ -35,7 +35,6 @@ static rcl_node_t node;
 static rclc_executor_t executor;
 static rclc_parameter_server_t param_server;
 static rcl_timer_t ping_timer, sync_timer;
-static bool uros_agent_connected = false;
 
 static std_msgs__msg__Float32 battery;
 static std_msgs__msg__Float32 battery_averaged;
@@ -186,7 +185,8 @@ static bool parameterChangedCallback(const Parameter*, const Parameter*,
 }
 
 static void pingTimerCallback(rcl_timer_t* timer, int64_t last_call_time) {
-  if (rmw_uros_ping_agent(200, 3) != RMW_RET_OK) uros_agent_connected = false;
+  if (rmw_uros_ping_agent(200, 3) != RMW_RET_OK)
+    status = AgentStatus::AGENT_LOST;
 }
 
 static void syncTimerCallback(rcl_timer_t* timer, int64_t last_call_time) {
@@ -417,44 +417,39 @@ void loop() {
       if (publish_param_trigger) {
         (void)!rcl_publish(&param_trigger_pub, &param_trigger, NULL);
         publish_param_trigger = false;
-      } else if (boot_request ||
-                 time() - boot_enter_time >= BOOT_TIMEOUT) {
-        uros_agent_connected = true;
+      } else if (boot_request || time() - boot_enter_time >= BOOT_TIMEOUT) {
+        (void)!rcl_publisher_fini(&param_trigger_pub, &node);
+        (void)!rcl_service_fini(&boot_firmware_srv, &node);
         status = AgentStatus::AGENT_CONNECTED;
       }
-
       break;
     case AgentStatus::AGENT_CONNECTED:
-      if (!uros_agent_connected)
-        status = AgentStatus::AGENT_LOST;
-      else {
-        rclc_executor_spin_some(&executor, 0);
+      rclc_executor_spin_some(&executor, 0);
 
-        if (publish_battery) {
-          (void)!rcl_publish(&battery_pub, &battery, NULL);
-          (void)!rcl_publish(&battery_averaged_pub, &battery_averaged, NULL);
-          publish_battery = false;
-        }
+      if (publish_battery) {
+        (void)!rcl_publish(&battery_pub, &battery, NULL);
+        (void)!rcl_publish(&battery_averaged_pub, &battery_averaged, NULL);
+        publish_battery = false;
+      }
 
-        if (publish_wheel_odom) {
-          (void)!rcl_publish(&wheel_odom_pub, &wheel_odom, NULL);
-          publish_wheel_odom = false;
-        }
+      if (publish_wheel_odom) {
+        (void)!rcl_publish(&wheel_odom_pub, &wheel_odom, NULL);
+        publish_wheel_odom = false;
+      }
 
-        if (publish_wheel_states) {
-          (void)!rcl_publish(&wheel_states_pub, &wheel_states, NULL);
-          publish_wheel_states = false;
-        }
+      if (publish_wheel_states) {
+        (void)!rcl_publish(&wheel_states_pub, &wheel_states, NULL);
+        publish_wheel_states = false;
+      }
 
-        if (publish_imu) {
-          (void)!rcl_publish(&imu_pub, &imu, NULL);
-          publish_imu = false;
-        }
+      if (publish_imu) {
+        (void)!rcl_publish(&imu_pub, &imu, NULL);
+        publish_imu = false;
+      }
 
-        if (reload_parameters.exchange(false)) {
-          params.update(&param_server);
-          dc.updateParams(params);
-        }
+      if (reload_parameters.exchange(false)) {
+        params.update(&param_server);
+        dc.updateParams(params);
       }
       break;
     case AgentStatus::AGENT_LOST:
