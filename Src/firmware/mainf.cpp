@@ -36,7 +36,6 @@ static rclc_executor_t executor;
 static rclc_parameter_server_t param_server;
 static rcl_timer_t ping_timer, sync_timer;
 static bool uros_agent_connected = false;
-static bool ros_initialized = false;
 
 static std_msgs__msg__Float32 battery;
 static std_msgs__msg__Float32 battery_averaged;
@@ -65,6 +64,7 @@ static geometry_msgs__msg__Twist twist_msg;
 static std_msgs__msg__Empty param_trigger;
 static rcl_publisher_t param_trigger_pub;
 static std::atomic_bool publish_param_trigger(true);
+static uint32_t boot_enter_time;
 
 #define WHEEL_WRAPPER(NAME)                         \
   constexpr const char* NAME##_cmd_pwm_topic =      \
@@ -90,7 +90,6 @@ static std_srvs__srv__Trigger_Response reset_odometry_res, firmware_version_res,
 
 static std::atomic_bool reset_request(false);
 static std::atomic_bool boot_request(false);
-static std::atomic_bool force_boot(false);
 
 enum class AgentStatus {
   BOOT,
@@ -221,7 +220,7 @@ static bool initROS() {
 
   // Executor
   RCCHECK(rclc_executor_init(&executor, &support.context,
-                             17 + RCLC_EXECUTOR_PARAMETER_SERVER_HANDLES,
+                             16 + RCLC_EXECUTOR_PARAMETER_SERVER_HANDLES,
                              &allocator))
 
   // Publishers
@@ -397,10 +396,11 @@ void setup() {
 void loop() {
   switch (status) {
     case AgentStatus::CONNECTING_TO_AGENT:
-      // Try to connect to uros agentdc.up
+      // Try to connect to uros agent
       if (rmw_uros_ping_agent(1000, 1) == RMW_RET_OK) {
         if (initROS()) {
           (void)!rcl_timer_call(&sync_timer);
+          boot_enter_time = time();
           status = AgentStatus::BOOT;
         } else
           finiROS();
@@ -417,12 +417,12 @@ void loop() {
       if (publish_param_trigger) {
         (void)!rcl_publish(&param_trigger_pub, &param_trigger, NULL);
         publish_param_trigger = false;
-      } else if (boot_request or force_boot) {
-        // lepszy kontroler
+      } else if (boot_request ||
+                 time() - boot_enter_time >= BOOT_TIMEOUT) {
         uros_agent_connected = true;
-
         status = AgentStatus::AGENT_CONNECTED;
       }
+
       break;
     case AgentStatus::AGENT_CONNECTED:
       if (!uros_agent_connected)
@@ -540,12 +540,8 @@ void update() {
   update_battery_led(cnt);
 
   if (status == AgentStatus::BOOT) {
-    if (cnt % 500 == 0 && !publish_param_trigger) {
+    if (cnt % PARAM_TRIGGER_PUB_PERIOD == 0 && !publish_param_trigger) {
       publish_param_trigger = true;
-    }
-
-    if (cnt % 2000 == 0 && !force_boot) {
-      force_boot = true;
     }
   }
   if (reset_request) reset();
