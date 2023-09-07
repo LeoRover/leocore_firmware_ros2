@@ -419,7 +419,9 @@ void loop() {
         publish_param_trigger = false;
       } else if (boot_request || time() - boot_enter_time >= BOOT_TIMEOUT) {
         (void)!rcl_publisher_fini(&param_trigger_pub, &node);
-        (void)!rcl_service_fini(&boot_firmware_srv, &node);
+        // this uncomented breaks whole ROS communication
+        // (void)!rclc_executor_remove_service(&executor, &boot_firmware_srv);
+        // (void)!rcl_service_fini(&boot_firmware_srv, &node);
         status = AgentStatus::AGENT_CONNECTED;
       }
       break;
