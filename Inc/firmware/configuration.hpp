@@ -53,7 +53,7 @@ constexpr uint8_t BATTERY_PUB_PERIOD = 10;
 constexpr uint8_t JOINTS_PUB_PERIOD = 5;
 constexpr uint8_t ODOM_PUB_PERIOD = 5;
 constexpr uint8_t IMU_PUB_PERIOD = 1;
-constexpr uint16_t PARAM_TRIGGER_PUB_PERIOD = 500;
+constexpr uint8_t PARAM_TRIGGER_PUB_PERIOD = 100;
 
 // The time after which the firmware will boot with default parameter values
 constexpr uint32_t BOOT_TIMEOUT = 20000;

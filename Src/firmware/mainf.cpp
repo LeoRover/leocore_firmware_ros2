@@ -63,7 +63,6 @@ static geometry_msgs__msg__Twist twist_msg;
 static std_msgs__msg__Empty param_trigger;
 static rcl_publisher_t param_trigger_pub;
 static std::atomic_bool publish_param_trigger(true);
-static uint32_t boot_enter_time;
 
 #define WHEEL_WRAPPER(NAME)                         \
   constexpr const char* NAME##_cmd_pwm_topic =      \
@@ -243,7 +242,7 @@ static bool initROS() {
       "~/imu"))
   RCCHECK(rclc_publisher_init_best_effort(
       &param_trigger_pub, &node,
-      ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Empty), "~/boot_firmware"))
+      ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Empty), "~/param_trigger"))
 
   // Subscriptions
   RCCHECK(rclc_subscription_init_default(
@@ -300,7 +299,7 @@ static bool initROS() {
                                     resetBoardCallback))
   RCCHECK(rclc_service_init_default(
       &boot_firmware_srv, &node,
-      ROSIDL_GET_SRV_TYPE_SUPPORT(std_srvs, srv, Trigger), "~/boot_firmware"))
+      ROSIDL_GET_SRV_TYPE_SUPPORT(std_srvs, srv, Trigger), "~/boot"))
   RCCHECK(rclc_executor_add_service(&executor, &boot_firmware_srv,
                                     &boot_firmware_req, &boot_firmware_res,
                                     &bootFirmwareCallback))
@@ -394,6 +393,7 @@ void setup() {
 }
 
 void loop() {
+  static uint32_t boot_enter_time;
   switch (status) {
     case AgentStatus::CONNECTING_TO_AGENT:
       // Try to connect to uros agent
