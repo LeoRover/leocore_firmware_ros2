@@ -9,13 +9,13 @@ static constexpr const char* wheel_pid_i_param_name = "wheels/pid/i";
 static constexpr const char* wheel_pid_d_param_name = "wheels/pid/d";
 static constexpr const char* wheel_pwm_duty_limit_param_name =
     "wheels/pwm_duty_limit";
-static constexpr const char* dd_wheel_radius_param_name =
+static constexpr const char* robot_wheel_radius_param_name =
     "diff_drive/wheel_radius";
-static constexpr const char* dd_wheel_separation_param_name =
+static constexpr const char* robot_wheel_separation_param_name =
     "diff_drive/wheel_separation";
-static constexpr const char* dd_angular_velocity_multiplier_param_name =
+static constexpr const char* robot_angular_velocity_multiplier_param_name =
     "diff_drive/angular_velocity_multiplier";
-static constexpr const char* dd_input_timeout_param_name =
+static constexpr const char* robot_input_timeout_param_name =
     "diff_drive/input_timeout";
 static constexpr const char* battery_min_voltage_param_name =
     "battery_min_voltage";
@@ -57,15 +57,15 @@ bool Parameters::init(rclc_parameter_server_t* param_server) {
       init_parameter_double(param_server, wheel_pid_d_param_name, wheel_pid_d))
   RCCHECK(init_parameter_double(param_server, wheel_pwm_duty_limit_param_name,
                                 wheel_pwm_duty_limit))
-  RCCHECK(init_parameter_double(param_server, dd_wheel_radius_param_name,
-                                dd_wheel_radius))
-  RCCHECK(init_parameter_double(param_server, dd_wheel_separation_param_name,
-                                dd_wheel_separation))
+  RCCHECK(init_parameter_double(param_server, robot_wheel_radius_param_name,
+                                robot_wheel_radius))
+  RCCHECK(init_parameter_double(param_server, robot_wheel_separation_param_name,
+                                robot_wheel_separation))
   RCCHECK(init_parameter_double(param_server,
-                                dd_angular_velocity_multiplier_param_name,
-                                dd_angular_velocity_multiplier))
-  RCCHECK(init_parameter_int(param_server, dd_input_timeout_param_name,
-                             dd_input_timeout))
+                                robot_angular_velocity_multiplier_param_name,
+                                robot_angular_velocity_multiplier))
+  RCCHECK(init_parameter_int(param_server, robot_input_timeout_param_name,
+                             robot_input_timeout))
   RCCHECK(init_parameter_double(param_server, battery_min_voltage_param_name,
                                 battery_min_voltage))
   return true;
@@ -88,16 +88,17 @@ void Parameters::update(rclc_parameter_server_t* param_server) {
   get_parameter_double(param_server, wheel_pid_d_param_name, &wheel_pid_d);
   get_parameter_double(param_server, wheel_pwm_duty_limit_param_name,
                        &wheel_pwm_duty_limit);
-  get_parameter_double(param_server, dd_wheel_radius_param_name,
-                       &dd_wheel_radius);
-  get_parameter_double(param_server, dd_wheel_separation_param_name,
-                       &dd_wheel_separation);
-  get_parameter_double(param_server, dd_angular_velocity_multiplier_param_name,
-                       &dd_angular_velocity_multiplier);
+  get_parameter_double(param_server, robot_wheel_radius_param_name,
+                       &robot_wheel_radius);
+  get_parameter_double(param_server, robot_wheel_separation_param_name,
+                       &robot_wheel_separation);
+  get_parameter_double(param_server,
+                       robot_angular_velocity_multiplier_param_name,
+                       &robot_angular_velocity_multiplier);
   int64_t input_timeout;
-  rclc_parameter_get_int(param_server, dd_input_timeout_param_name,
+  rclc_parameter_get_int(param_server, robot_input_timeout_param_name,
                          &input_timeout);
-  dd_input_timeout = static_cast<int>(input_timeout);
+  robot_input_timeout = static_cast<int>(input_timeout);
   get_parameter_double(param_server, battery_min_voltage_param_name,
                        &battery_min_voltage);
 }
