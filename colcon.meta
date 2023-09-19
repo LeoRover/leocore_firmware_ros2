@@ -12,6 +12,11 @@
                 "-DRMW_UXRCE_ENTITY_CREATION_TIMEOUT=100",
                 "-DRMW_UXRCE_ENTITY_DESTROY_TIMEOUT=0"
             ]
+        },
+        "rclc_parameters": {
+            "cmake-args": [
+                "-DRCLC_PARAMETER_MAX_STRING_LENGTH=42"
+            ]
         }
     }
 }
