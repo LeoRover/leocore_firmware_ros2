@@ -407,6 +407,7 @@ bool initController() {
     controller = new diff_drive_lib::DiffDriveController(ROBOT_CONFIG);
   }
   controller->init(params);
+  return true;
 }
 
 void loop() {
