@@ -116,7 +116,7 @@ MotorController MotB(MOT_B_CONFIG);
 MotorController MotC(MOT_C_CONFIG);
 MotorController MotD(MOT_D_CONFIG);
 
-static diff_drive_lib::RobotController *controller;
+static diff_drive_lib::RobotController* controller;
 static ImuReceiver imu_receiver(&IMU_I2C);
 
 static Parameters params;
@@ -254,20 +254,20 @@ static bool initROS() {
   RCCHECK(rclc_executor_add_subscription(&executor, &twist_sub, &twist_msg,
                                          cmdVelCallback, ON_NEW_DATA))
 
-#define WHEEL_INIT_ROS(NAME)                                   \
-  RCCHECK(rclc_subscription_init_default(                      \
-      &NAME##_cmd_pwm_sub, &node,                              \
-      ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float32),     \
-      NAME##_cmd_pwm_topic))                                   \
-  RCCHECK(rclc_executor_add_subscription_with_context(         \
-      &executor, &NAME##_cmd_pwm_sub, &NAME##_cmd_pwm_msg,     \
+#define WHEEL_INIT_ROS(NAME)                                            \
+  RCCHECK(rclc_subscription_init_default(                               \
+      &NAME##_cmd_pwm_sub, &node,                                       \
+      ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float32),              \
+      NAME##_cmd_pwm_topic))                                            \
+  RCCHECK(rclc_executor_add_subscription_with_context(                  \
+      &executor, &NAME##_cmd_pwm_sub, &NAME##_cmd_pwm_msg,              \
       wheelCmdPWMDutyCallback, &controller->wheel_##NAME, ON_NEW_DATA)) \
-  RCCHECK(rclc_subscription_init_default(                      \
-      &NAME##_cmd_vel_sub, &node,                              \
-      ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float32),     \
-      NAME##_cmd_vel_topic))                                   \
-  RCCHECK(rclc_executor_add_subscription_with_context(         \
-      &executor, &NAME##_cmd_vel_sub, &NAME##_cmd_vel_msg,     \
+  RCCHECK(rclc_subscription_init_default(                               \
+      &NAME##_cmd_vel_sub, &node,                                       \
+      ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float32),              \
+      NAME##_cmd_vel_topic))                                            \
+  RCCHECK(rclc_executor_add_subscription_with_context(                  \
+      &executor, &NAME##_cmd_vel_sub, &NAME##_cmd_vel_msg,              \
       wheelCmdVelCallback, &controller->wheel_##NAME, ON_NEW_DATA))
 
   WHEEL_INIT_ROS(FL)
@@ -396,13 +396,14 @@ void setup() {
 bool initController() {
   if (params.mecanum_wheels) {
     RCCHECK(rclc_publisher_init_best_effort(
-      &wheel_odom_mecanum_pub, &node,
-      ROSIDL_GET_MSG_TYPE_SUPPORT(leo_msgs, msg, WheelOdomMecanum), "~/wheel_odom_mecanum"))
+        &wheel_odom_mecanum_pub, &node,
+        ROSIDL_GET_MSG_TYPE_SUPPORT(leo_msgs, msg, WheelOdomMecanum),
+        "~/wheel_odom_mecanum"))
     controller = new diff_drive_lib::MecanumController(ROBOT_CONFIG);
   } else {
     RCCHECK(rclc_publisher_init_best_effort(
-      &wheel_odom_pub, &node,
-      ROSIDL_GET_MSG_TYPE_SUPPORT(leo_msgs, msg, WheelOdom), "~/wheel_odom"))
+        &wheel_odom_pub, &node,
+        ROSIDL_GET_MSG_TYPE_SUPPORT(leo_msgs, msg, WheelOdom), "~/wheel_odom"))
     controller = new diff_drive_lib::DiffDriveController(ROBOT_CONFIG);
   }
   controller->init(params);
@@ -437,7 +438,7 @@ void loop() {
         // this uncomented breaks whole ROS communication
         // (void)!rclc_executor_remove_service(&executor, &boot_firmware_srv);
         // (void)!rcl_service_fini(&boot_firmware_srv, &node);
-        (void)!initController();        
+        (void)!initController();
         status = AgentStatus::AGENT_CONNECTED;
       }
       break;
@@ -451,8 +452,9 @@ void loop() {
       }
 
       if (publish_wheel_odom) {
-        if (params.mecanum_wheels){
-          (void)!rcl_publish(&wheel_odom_mecanum_pub, &wheel_odom_mecanum, NULL);
+        if (params.mecanum_wheels) {
+          (void)!rcl_publish(&wheel_odom_mecanum_pub, &wheel_odom_mecanum,
+                             NULL);
         } else {
           (void)!rcl_publish(&wheel_odom_pub, &wheel_odom, NULL);
         }
@@ -591,7 +593,7 @@ void update() {
   if (cnt % ODOM_PUB_PERIOD == 0 && !publish_wheel_odom) {
     auto robot_odom = controller->getOdom();
 
-    if(params.mecanum_wheels){
+    if (params.mecanum_wheels) {
       wheel_odom_mecanum.stamp = now();
       wheel_odom_mecanum.velocity_lin_x = robot_odom.velocity_lin_x;
       wheel_odom_mecanum.velocity_lin_y = robot_odom.velocity_lin_y;
@@ -599,13 +601,13 @@ void update() {
       wheel_odom_mecanum.pose_x = robot_odom.pose_x;
       wheel_odom_mecanum.pose_y = robot_odom.pose_y;
       wheel_odom_mecanum.pose_yaw = robot_odom.pose_yaw;
-    } else {   
-    wheel_odom.stamp = now();
-    wheel_odom.velocity_lin = robot_odom.velocity_lin_x;
-    wheel_odom.velocity_ang = robot_odom.velocity_ang;
-    wheel_odom.pose_x = robot_odom.pose_x;
-    wheel_odom.pose_y = robot_odom.pose_y;
-    wheel_odom.pose_yaw = robot_odom.pose_yaw;
+    } else {
+      wheel_odom.stamp = now();
+      wheel_odom.velocity_lin = robot_odom.velocity_lin_x;
+      wheel_odom.velocity_ang = robot_odom.velocity_ang;
+      wheel_odom.pose_x = robot_odom.pose_x;
+      wheel_odom.pose_y = robot_odom.pose_y;
+      wheel_odom.pose_yaw = robot_odom.pose_yaw;
     }
     publish_wheel_odom = true;
   }
