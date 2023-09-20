@@ -17,11 +17,14 @@ struct Parameters : diff_drive_lib::RobotParams {
 
     robot_wheel_radius = 0.0625F;
     robot_wheel_separation = 0.33F;
+    robot_wheel_base = 0.3052F;
     robot_angular_velocity_multiplier = 1.91F;
     robot_input_timeout = 500;
   }
 
   float battery_min_voltage = 10.0;
+
+  bool mecanum_wheels = false;
 
   bool init(rclc_parameter_server_t* param_server);
   void update(rclc_parameter_server_t* param_server);
