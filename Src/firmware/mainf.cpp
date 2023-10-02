@@ -446,6 +446,8 @@ void loop() {
     case AgentStatus::AGENT_CONNECTED:
       rclc_executor_spin_some(&executor, 0);
 
+      if (reset_request) reset();
+
       if (publish_battery) {
         (void)!rcl_publish(&battery_pub, &battery, NULL);
         (void)!rcl_publish(&battery_averaged_pub, &battery_averaged, NULL);
@@ -564,7 +566,6 @@ void update() {
       publish_param_trigger = true;
     }
   }
-  if (reset_request) reset();
 
   if (status != AgentStatus::AGENT_CONNECTED) return;
 
