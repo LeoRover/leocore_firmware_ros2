@@ -1,5 +1,5 @@
 repositories:
   leo_msgs:
     type: git
-    url: https://github.com/fictionlab-gbp/leo_common-ros2-release.git
-    version: release/humble/leo_msgs/1.0.3-1
+    url: https://github.com/ros2-gbp/leo_common-release.git
+    version: release/humble/leo_msgs/1.2.0-1

@@ -5,13 +5,13 @@
 #include "mainf.h"
 #include "usart.h"
 
-#include "diff_drive_lib/diff_drive_controller.hpp"
+#include "diff_drive_lib/robot_controller.hpp"
 
 #include "firmware/hal_compat.hpp"
 #include "firmware/motor_controller.hpp"
 
 // Size of the heap memory used for micro-ROS entities
-constexpr uint32_t UROS_HEAP_SIZE = 25000;
+constexpr uint32_t UROS_HEAP_SIZE = 30000;
 
 // UART used for micro-ROS communication
 static constexpr UART_HandleTypeDef& UROS_UART = huart1;
@@ -119,25 +119,29 @@ extern MotorController MotB;
 extern MotorController MotC;
 extern MotorController MotD;
 
-constexpr diff_drive_lib::DiffDriveConfiguration DD_CONFIG = {
+constexpr diff_drive_lib::RobotConfiguration ROBOT_CONFIG = {
     .wheel_FL_conf =
         {
             .motor = MotC,
+            .op_mode = diff_drive_lib::WheelOperationMode::VELOCITY,
             .velocity_rolling_window_size = 10,
         },
     .wheel_RL_conf =
         {
             .motor = MotD,
+            .op_mode = diff_drive_lib::WheelOperationMode::VELOCITY,
             .velocity_rolling_window_size = 10,
         },
     .wheel_FR_conf =
         {
             .motor = MotA,
+            .op_mode = diff_drive_lib::WheelOperationMode::VELOCITY,
             .velocity_rolling_window_size = 10,
         },
     .wheel_RR_conf =
         {
             .motor = MotB,
+            .op_mode = diff_drive_lib::WheelOperationMode::VELOCITY,
             .velocity_rolling_window_size = 10,
         },
 };
