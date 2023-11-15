@@ -309,7 +309,7 @@ static bool initROS() {
 
   // Parameter Server
   static rclc_parameter_options_t param_options;
-  param_options.max_params = 12;
+  param_options.max_params = 13;
   param_options.notify_changed_over_dds = true;
   RCCHECK(rclc_parameter_server_init_with_option(&param_server, &node,
                                                  &param_options))
