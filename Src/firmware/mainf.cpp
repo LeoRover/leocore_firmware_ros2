@@ -69,6 +69,9 @@ static std_msgs__msg__Empty param_trigger;
 static rcl_publisher_t param_trigger_pub;
 static std::atomic_bool publish_param_trigger(true);
 
+static bool mecanum_wheels = false;
+static std::atomic_bool controller_replacement(false);
+
 #define WHEEL_WRAPPER(NAME)                         \
   constexpr const char* NAME##_cmd_pwm_topic =      \
       "~/wheel_" #NAME "/cmd_pwm_duty";             \
@@ -116,6 +119,9 @@ MotorController MotB(MOT_B_CONFIG);
 MotorController MotC(MOT_C_CONFIG);
 MotorController MotD(MOT_D_CONFIG);
 
+static uint8_t
+    controller_buffer[std::max(sizeof(diff_drive_lib::DiffDriveController),
+                               sizeof(diff_drive_lib::MecanumController))];
 static diff_drive_lib::RobotController* controller;
 static ImuReceiver imu_receiver(&IMU_I2C);
 
@@ -393,21 +399,31 @@ void setup() {
   battery_led_status = BatteryLedStatus::NOT_CONNECTED;
 }
 
-bool initController() {
-  if (params.mecanum_wheels) {
-    RCCHECK(rclc_publisher_init_best_effort(
+void initController() {
+  mecanum_wheels = params.mecanum_wheels;
+  if (mecanum_wheels) {
+    rclc_publisher_init_best_effort(
         &wheel_odom_mecanum_pub, &node,
         ROSIDL_GET_MSG_TYPE_SUPPORT(leo_msgs, msg, WheelOdomMecanum),
-        "~/wheel_odom_mecanum"))
-    controller = new diff_drive_lib::MecanumController(ROBOT_CONFIG);
+        "~/wheel_odom_mecanum");
+    controller =
+        new (controller_buffer) diff_drive_lib::MecanumController(ROBOT_CONFIG);
   } else {
-    RCCHECK(rclc_publisher_init_best_effort(
+    rclc_publisher_init_best_effort(
         &wheel_odom_pub, &node,
-        ROSIDL_GET_MSG_TYPE_SUPPORT(leo_msgs, msg, WheelOdom), "~/wheel_odom"))
-    controller = new diff_drive_lib::DiffDriveController(ROBOT_CONFIG);
+        ROSIDL_GET_MSG_TYPE_SUPPORT(leo_msgs, msg, WheelOdom), "~/wheel_odom");
+    controller = new (controller_buffer)
+        diff_drive_lib::DiffDriveController(ROBOT_CONFIG);
   }
   controller->init(params);
-  return true;
+}
+
+void finiController() {
+  if (mecanum_wheels) {
+    (void)!rcl_publisher_fini(&wheel_odom_mecanum_pub, &node);
+  } else {
+    (void)!rcl_publisher_fini(&wheel_odom_pub, &node);
+  }
 }
 
 void loop() {
@@ -439,7 +455,7 @@ void loop() {
         // this uncomented breaks whole ROS communication
         // (void)!rclc_executor_remove_service(&executor, &boot_firmware_srv);
         // (void)!rcl_service_fini(&boot_firmware_srv, &node);
-        (void)!initController();
+        initController();
         status = AgentStatus::AGENT_CONNECTED;
       }
       break;
@@ -476,7 +492,14 @@ void loop() {
 
       if (reload_parameters.exchange(false)) {
         params.update(&param_server);
-        controller->updateParams(params);
+        if (params.mecanum_wheels != mecanum_wheels) {
+          controller_replacement = true;
+          finiController();
+          initController();
+          controller_replacement = false;
+        } else {
+          controller->updateParams(params);
+        }
       }
       break;
     case AgentStatus::AGENT_LOST:
@@ -567,7 +590,7 @@ void update() {
     }
   }
 
-  if (status != AgentStatus::AGENT_CONNECTED) return;
+  if (status != AgentStatus::AGENT_CONNECTED || controller_replacement) return;
 
   controller->update(UPDATE_PERIOD);
 
