@@ -17,7 +17,8 @@ constexpr uint32_t UROS_HEAP_SIZE = 30000;
 static constexpr UART_HandleTypeDef& UROS_UART = huart1;
 
 // Domain ID used for ROS communication
-constexpr size_t ROS_DOMAIN_ID = 0;
+// When set to 255 it is automatically overridden by the uROS agent
+constexpr size_t ROS_DOMAIN_ID = 255;
 
 // Name of the ROS node
 constexpr const char* ROS_NODE_NAME = "firmware";
