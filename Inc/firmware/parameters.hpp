@@ -16,7 +16,7 @@ struct Parameters : diff_drive_lib::RobotParams {
     wheel_pwm_duty_limit = 100.0F;
 
     robot_wheel_radius = 0.0625F;
-    robot_wheel_separation = 0.33F;
+    robot_wheel_separation = 0.358F;
     robot_wheel_base = 0.3052F;
     robot_angular_velocity_multiplier = 1.76F;
     robot_input_timeout = 500;
