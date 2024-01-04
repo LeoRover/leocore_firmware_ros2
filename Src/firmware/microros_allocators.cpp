@@ -14,6 +14,10 @@ void free_all_heap() {
   current_pointer = 0;
 }
 
+void set_heap(uint32_t pointer) {
+  current_pointer = pointer;
+}
+
 void assert_position() {
   if (current_pointer >= sizeof(heap)) {
     while (1) {
@@ -56,7 +60,7 @@ void *microros_reallocate(void *pointer, size_t size, void *state) {
 }
 
 void *microros_zero_allocate(size_t number_of_elements, size_t size_of_element,
-                           void *state) {
+                             void *state) {
   size_t size = number_of_elements * size_of_element;
 
   if (size % 4 != 0) {
