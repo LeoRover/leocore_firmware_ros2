@@ -6,15 +6,15 @@
 static uint8_t heap[UROS_HEAP_SIZE];
 static size_t current_pointer = 0;
 
-uint32_t max_used_heap() {
+uint32_t heap_get_current_pointer() {
   return current_pointer;
 }
 
-void free_all_heap() {
+void heap_free_all() {
   current_pointer = 0;
 }
 
-void set_heap(uint32_t pointer) {
+void heap_set_current_pointer(uint32_t pointer) {
   current_pointer = pointer;
 }
 

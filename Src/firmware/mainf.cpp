@@ -369,7 +369,7 @@ static void finiROS() {
   (void)!rcl_init_options_fini(&init_options);
   rclc_support_fini(&support);
 
-  free_all_heap();
+  heap_free_all();
 }
 
 static uint8_t uart_rbuffer[2048];
@@ -403,7 +403,7 @@ void setup() {
 
 void initController() {
   mecanum_wheels = params.mecanum_wheels;
-  reset_pointer_position = max_used_heap();
+  reset_pointer_position = heap_get_current_pointer();
   if (mecanum_wheels) {
     rclc_publisher_init_best_effort(
         &wheel_odom_mecanum_pub, &node,
@@ -428,7 +428,7 @@ void finiController() {
     (void)!rcl_publisher_fini(&wheel_odom_pub, &node);
   }
   controller->~RobotController();
-  set_heap(reset_pointer_position);
+  heap_set_current_pointer(reset_pointer_position);
 }
 
 void loop() {

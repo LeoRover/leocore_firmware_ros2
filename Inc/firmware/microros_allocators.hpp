@@ -3,9 +3,9 @@
 #include <cstdint>
 #include <cstdlib>
 
-uint32_t max_used_heap();
-void free_all_heap();
-void set_heap(uint32_t pointer);
+uint32_t heap_get_current_pointer();
+void heap_free_all();
+void heap_set_current_pointer(uint32_t pointer);
 
 void* microros_allocate(size_t size, void* state);
 void microros_deallocate(void* pointer, void* state);
