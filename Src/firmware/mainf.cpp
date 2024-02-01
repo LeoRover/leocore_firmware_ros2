@@ -72,6 +72,8 @@ static std::atomic_bool publish_param_trigger(true);
 static bool mecanum_wheels = false;
 static std::atomic_bool controller_replacement(false);
 
+static uint32_t reset_pointer_position;
+
 #define WHEEL_WRAPPER(NAME)                         \
   constexpr const char* NAME##_cmd_pwm_topic =      \
       "~/wheel_" #NAME "/cmd_pwm_duty";             \
@@ -367,7 +369,7 @@ static void finiROS() {
   (void)!rcl_init_options_fini(&init_options);
   rclc_support_fini(&support);
 
-  free_all_heap();
+  heap_free_all();
 }
 
 static uint8_t uart_rbuffer[2048];
@@ -401,6 +403,7 @@ void setup() {
 
 void initController() {
   mecanum_wheels = params.mecanum_wheels;
+  reset_pointer_position = heap_get_current_pointer();
   if (mecanum_wheels) {
     rclc_publisher_init_best_effort(
         &wheel_odom_mecanum_pub, &node,
@@ -424,6 +427,8 @@ void finiController() {
   } else {
     (void)!rcl_publisher_fini(&wheel_odom_pub, &node);
   }
+  controller->~RobotController();
+  heap_set_current_pointer(reset_pointer_position);
 }
 
 void loop() {
