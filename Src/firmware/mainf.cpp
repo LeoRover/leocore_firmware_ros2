@@ -509,6 +509,7 @@ void loop() {
       break;
     case AgentStatus::AGENT_LOST:
       controller->disable();
+      finiController();
       finiROS();
       status = AgentStatus::CONNECTING_TO_AGENT;
       break;
