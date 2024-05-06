@@ -33,7 +33,7 @@ static constexpr I2C_HandleTypeDef& IMU_I2C = hi2c1;
 constexpr uint16_t PWM_RANGE = 1000;
 
 // Number of encoder readings to remember when estimating the wheel velocity
-constexpr uint32_t ENCODER_BUFFER_SIZE = 10;
+constexpr uint32_t VELOCITY_ROLLING_WINDOW_SIZE = 10;
 
 // The period (in number of calls to the update() function) at which the battery
 // voltage is probed
@@ -125,24 +125,20 @@ constexpr diff_drive_lib::RobotConfiguration ROBOT_CONFIG = {
         {
             .motor = MotC,
             .op_mode = diff_drive_lib::WheelOperationMode::VELOCITY,
-            .velocity_rolling_window_size = 10,
         },
     .wheel_RL_conf =
         {
             .motor = MotD,
             .op_mode = diff_drive_lib::WheelOperationMode::VELOCITY,
-            .velocity_rolling_window_size = 10,
         },
     .wheel_FR_conf =
         {
             .motor = MotA,
             .op_mode = diff_drive_lib::WheelOperationMode::VELOCITY,
-            .velocity_rolling_window_size = 10,
         },
     .wheel_RR_conf =
         {
             .motor = MotB,
             .op_mode = diff_drive_lib::WheelOperationMode::VELOCITY,
-            .velocity_rolling_window_size = 10,
         },
 };
