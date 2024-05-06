@@ -43,9 +43,8 @@ static std_msgs__msg__Float32 battery;
 static std_msgs__msg__Float32 battery_averaged;
 static rcl_publisher_t battery_pub;
 static rcl_publisher_t battery_averaged_pub;
-static float battery_buffer_memory[BATTERY_BUFFER_SIZE];
-static diff_drive_lib::CircularBuffer<float> battery_buffer(
-    BATTERY_BUFFER_SIZE, battery_buffer_memory);
+static diff_drive_lib::CircularBuffer<float, BATTERY_BUFFER_SIZE>
+    battery_buffer;
 static std::atomic_bool publish_battery(false);
 
 static leo_msgs__msg__WheelOdom wheel_odom;
@@ -121,10 +120,11 @@ MotorController MotB(MOT_B_CONFIG);
 MotorController MotC(MOT_C_CONFIG);
 MotorController MotD(MOT_D_CONFIG);
 
-static uint8_t
-    controller_buffer[std::max(sizeof(diff_drive_lib::DiffDriveController),
-                               sizeof(diff_drive_lib::MecanumController))];
-static diff_drive_lib::RobotController* controller;
+static uint8_t controller_buffer[std::max(
+    sizeof(diff_drive_lib::DiffDriveController<VELOCITY_ROLLING_WINDOW_SIZE>),
+    sizeof(diff_drive_lib::MecanumController<VELOCITY_ROLLING_WINDOW_SIZE>))];
+static diff_drive_lib::RobotController<VELOCITY_ROLLING_WINDOW_SIZE>*
+    controller;
 static ImuReceiver imu_receiver(&IMU_I2C);
 
 static Parameters params;
@@ -168,16 +168,16 @@ static void getBoardTypeCallback(const void* reqin, void* resin) {
 
 static void wheelCmdPWMDutyCallback(const void* msgin, void* context) {
   const std_msgs__msg__Float32* msg = (std_msgs__msg__Float32*)msgin;
-  diff_drive_lib::WheelController* wheel =
-      (diff_drive_lib::WheelController*)context;
+  auto wheel = static_cast<
+      diff_drive_lib::WheelController<VELOCITY_ROLLING_WINDOW_SIZE>*>(context);
   wheel->disable();
   wheel->motor.setPWMDutyCycle(msg->data);
 }
 
 static void wheelCmdVelCallback(const void* msgin, void* context) {
   const std_msgs__msg__Float32* msg = (std_msgs__msg__Float32*)msgin;
-  diff_drive_lib::WheelController* wheel =
-      (diff_drive_lib::WheelController*)context;
+  auto wheel = static_cast<
+      diff_drive_lib::WheelController<VELOCITY_ROLLING_WINDOW_SIZE>*>(context);
   wheel->enable();
   wheel->setTargetVelocity(msg->data);
 }
@@ -409,14 +409,16 @@ void initController() {
         &wheel_odom_mecanum_pub, &node,
         ROSIDL_GET_MSG_TYPE_SUPPORT(leo_msgs, msg, WheelOdomMecanum),
         "~/wheel_odom_mecanum");
-    controller =
-        new (controller_buffer) diff_drive_lib::MecanumController(ROBOT_CONFIG);
+    controller = new (controller_buffer)
+        diff_drive_lib::MecanumController<VELOCITY_ROLLING_WINDOW_SIZE>(
+            ROBOT_CONFIG);
   } else {
     rclc_publisher_init_best_effort(
         &wheel_odom_pub, &node,
         ROSIDL_GET_MSG_TYPE_SUPPORT(leo_msgs, msg, WheelOdom), "~/wheel_odom");
     controller = new (controller_buffer)
-        diff_drive_lib::DiffDriveController(ROBOT_CONFIG);
+        diff_drive_lib::DiffDriveController<VELOCITY_ROLLING_WINDOW_SIZE>(
+            ROBOT_CONFIG);
   }
   controller->init(params);
 }
