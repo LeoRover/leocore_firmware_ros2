@@ -125,6 +125,13 @@ static uint8_t controller_buffer[std::max(
     sizeof(diff_drive_lib::MecanumController<VELOCITY_ROLLING_WINDOW_SIZE>))];
 static diff_drive_lib::RobotController<VELOCITY_ROLLING_WINDOW_SIZE>*
     controller;
+
+enum class WheelID { FL, RL, FR, RR };
+static WheelID wheel_FL = WheelID::FL;
+static WheelID wheel_RL = WheelID::RL;
+static WheelID wheel_FR = WheelID::FR;
+static WheelID wheel_RR = WheelID::RR;
+
 static ImuReceiver imu_receiver(&IMU_I2C);
 
 static Parameters params;
@@ -171,21 +178,63 @@ static void getBoardTypeCallback(const void* reqin, void* resin) {
 
 static void wheelCmdPWMDutyCallback(const void* msgin, void* context) {
   const std_msgs__msg__Float32* msg = (std_msgs__msg__Float32*)msgin;
-  auto wheel = static_cast<
-      diff_drive_lib::WheelController<VELOCITY_ROLLING_WINDOW_SIZE>*>(context);
+  auto wheel_id = *static_cast<const WheelID*>(context);
+  diff_drive_lib::WheelController<VELOCITY_ROLLING_WINDOW_SIZE>* wheel = nullptr;
+
   if (controller_initialized) {
-    wheel->disable();
-    wheel->motor.setPWMDutyCycle(msg->data);
+    switch (wheel_id)
+    {
+      case WheelID::FL:
+        wheel = &controller->wheel_FL;
+        break;
+      case WheelID::FR:
+        wheel = &controller->wheel_FR;
+        break;
+      case WheelID::RL:
+        wheel = &controller->wheel_RL;
+        break;
+      case WheelID::RR:
+        wheel = &controller->wheel_RR;
+        break;
+      default:
+        break;
+    }
+    
+    if (wheel) {
+      wheel->disable();
+      wheel->motor.setPWMDutyCycle(msg->data);
+    }
   }
 }
 
 static void wheelCmdVelCallback(const void* msgin, void* context) {
   const std_msgs__msg__Float32* msg = (std_msgs__msg__Float32*)msgin;
-  auto wheel = static_cast<
-      diff_drive_lib::WheelController<VELOCITY_ROLLING_WINDOW_SIZE>*>(context);
+  auto wheel_id = *static_cast<const WheelID*>(context);
+  diff_drive_lib::WheelController<VELOCITY_ROLLING_WINDOW_SIZE>* wheel = nullptr;
+
   if (controller_initialized) {
-    wheel->enable();
-    wheel->setTargetVelocity(msg->data);
+    switch (wheel_id)
+    {
+      case WheelID::FL:
+        wheel = &controller->wheel_FL;
+        break;
+      case WheelID::FR:
+        wheel = &controller->wheel_FR;
+        break;
+      case WheelID::RL:
+        wheel = &controller->wheel_RL;
+        break;
+      case WheelID::RR:
+        wheel = &controller->wheel_RR;
+        break;
+      default:
+        break;
+    }
+    
+    if (wheel) {
+      wheel->enable();
+      wheel->setTargetVelocity(msg->data);
+    }
   }
 }
 
@@ -269,26 +318,26 @@ static bool initROS() {
   RCCHECK(rclc_executor_add_subscription(&executor, &twist_sub, &twist_msg,
                                          cmdVelCallback, ON_NEW_DATA))
 
-#define WHEEL_INIT_ROS(NAME)                                            \
+#define WHEEL_INIT_ROS(NAME, ID)                                            \
   RCCHECK(rclc_subscription_init_default(                               \
       &NAME##_cmd_pwm_sub, &node,                                       \
       ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float32),              \
       NAME##_cmd_pwm_topic))                                            \
   RCCHECK(rclc_executor_add_subscription_with_context(                  \
       &executor, &NAME##_cmd_pwm_sub, &NAME##_cmd_pwm_msg,              \
-      wheelCmdPWMDutyCallback, &controller->wheel_##NAME, ON_NEW_DATA)) \
+      wheelCmdPWMDutyCallback, &ID, ON_NEW_DATA)) \
   RCCHECK(rclc_subscription_init_default(                               \
       &NAME##_cmd_vel_sub, &node,                                       \
       ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float32),              \
       NAME##_cmd_vel_topic))                                            \
   RCCHECK(rclc_executor_add_subscription_with_context(                  \
       &executor, &NAME##_cmd_vel_sub, &NAME##_cmd_vel_msg,              \
-      wheelCmdVelCallback, &controller->wheel_##NAME, ON_NEW_DATA))
+      wheelCmdVelCallback, &ID, ON_NEW_DATA))
 
-  WHEEL_INIT_ROS(FL)
-  WHEEL_INIT_ROS(RL)
-  WHEEL_INIT_ROS(FR)
-  WHEEL_INIT_ROS(RR)
+  WHEEL_INIT_ROS(FL, wheel_FL)
+  WHEEL_INIT_ROS(RL, wheel_RL)
+  WHEEL_INIT_ROS(FR, wheel_FR)
+  WHEEL_INIT_ROS(RR, wheel_RR)
 
   // Services
   RCCHECK(rclc_service_init_default(
