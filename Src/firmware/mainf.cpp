@@ -179,11 +179,11 @@ static void getBoardTypeCallback(const void* reqin, void* resin) {
 static void wheelCmdPWMDutyCallback(const void* msgin, void* context) {
   const std_msgs__msg__Float32* msg = (std_msgs__msg__Float32*)msgin;
   auto wheel_id = *static_cast<const WheelID*>(context);
-  diff_drive_lib::WheelController<VELOCITY_ROLLING_WINDOW_SIZE>* wheel = nullptr;
+  diff_drive_lib::WheelController<VELOCITY_ROLLING_WINDOW_SIZE>* wheel =
+      nullptr;
 
   if (controller_initialized) {
-    switch (wheel_id)
-    {
+    switch (wheel_id) {
       case WheelID::FL:
         wheel = &controller->wheel_FL;
         break;
@@ -199,7 +199,7 @@ static void wheelCmdPWMDutyCallback(const void* msgin, void* context) {
       default:
         break;
     }
-    
+
     if (wheel) {
       wheel->disable();
       wheel->motor.setPWMDutyCycle(msg->data);
@@ -210,11 +210,11 @@ static void wheelCmdPWMDutyCallback(const void* msgin, void* context) {
 static void wheelCmdVelCallback(const void* msgin, void* context) {
   const std_msgs__msg__Float32* msg = (std_msgs__msg__Float32*)msgin;
   auto wheel_id = *static_cast<const WheelID*>(context);
-  diff_drive_lib::WheelController<VELOCITY_ROLLING_WINDOW_SIZE>* wheel = nullptr;
+  diff_drive_lib::WheelController<VELOCITY_ROLLING_WINDOW_SIZE>* wheel =
+      nullptr;
 
   if (controller_initialized) {
-    switch (wheel_id)
-    {
+    switch (wheel_id) {
       case WheelID::FL:
         wheel = &controller->wheel_FL;
         break;
@@ -230,7 +230,7 @@ static void wheelCmdVelCallback(const void* msgin, void* context) {
       default:
         break;
     }
-    
+
     if (wheel) {
       wheel->enable();
       wheel->setTargetVelocity(msg->data);
@@ -318,20 +318,20 @@ static bool initROS() {
   RCCHECK(rclc_executor_add_subscription(&executor, &twist_sub, &twist_msg,
                                          cmdVelCallback, ON_NEW_DATA))
 
-#define WHEEL_INIT_ROS(NAME, ID)                                            \
-  RCCHECK(rclc_subscription_init_default(                               \
-      &NAME##_cmd_pwm_sub, &node,                                       \
-      ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float32),              \
-      NAME##_cmd_pwm_topic))                                            \
-  RCCHECK(rclc_executor_add_subscription_with_context(                  \
-      &executor, &NAME##_cmd_pwm_sub, &NAME##_cmd_pwm_msg,              \
-      wheelCmdPWMDutyCallback, &ID, ON_NEW_DATA)) \
-  RCCHECK(rclc_subscription_init_default(                               \
-      &NAME##_cmd_vel_sub, &node,                                       \
-      ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float32),              \
-      NAME##_cmd_vel_topic))                                            \
-  RCCHECK(rclc_executor_add_subscription_with_context(                  \
-      &executor, &NAME##_cmd_vel_sub, &NAME##_cmd_vel_msg,              \
+#define WHEEL_INIT_ROS(NAME, ID)                           \
+  RCCHECK(rclc_subscription_init_default(                  \
+      &NAME##_cmd_pwm_sub, &node,                          \
+      ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float32), \
+      NAME##_cmd_pwm_topic))                               \
+  RCCHECK(rclc_executor_add_subscription_with_context(     \
+      &executor, &NAME##_cmd_pwm_sub, &NAME##_cmd_pwm_msg, \
+      wheelCmdPWMDutyCallback, &ID, ON_NEW_DATA))          \
+  RCCHECK(rclc_subscription_init_default(                  \
+      &NAME##_cmd_vel_sub, &node,                          \
+      ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float32), \
+      NAME##_cmd_vel_topic))                               \
+  RCCHECK(rclc_executor_add_subscription_with_context(     \
+      &executor, &NAME##_cmd_vel_sub, &NAME##_cmd_vel_msg, \
       wheelCmdVelCallback, &ID, ON_NEW_DATA))
 
   WHEEL_INIT_ROS(FL, wheel_FL)
