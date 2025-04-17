@@ -1,23 +1,14 @@
 {
   inputs = {
+    self.submodules = true;
     nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
     flake-utils.url = "github:numtide/flake-utils";
-    poetry2nix = {
-      url = "github:nix-community/poetry2nix";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
+    micro_ros_cmake.url = "path:./external/micro_ros_cmake";
   };
-  outputs = { self, nixpkgs, flake-utils, poetry2nix }:
+  outputs = { self, nixpkgs, flake-utils, micro_ros_cmake }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = (import nixpkgs { system = system; });
-
-        inherit (poetry2nix.lib.mkPoetry2Nix { inherit pkgs; }) mkPoetryEnv;
-
-        # poetry-env = mkPoetryEnv {
-        #   projectDir = ./.;
-        #   python = pkgs.python312;
-        # };
 
         openocd-stm = pkgs.openocd.overrideAttrs (old: {
           src = pkgs.fetchFromGitHub {
@@ -42,33 +33,34 @@
       in {
         devShells = {
           buildenv = pkgs.mkShellNoCC {
-            # PYTHONPATH = "${poetry-env}/lib/python3.12/site-packages";
+            PYTHONPATH = micro_ros_cmake.devShells.${system}.default.PYTHONPATH;
 
-            packages = with pkgs; [
-            #   poetry-env
+            packages =
+              micro_ros_cmake.devShells.${system}.default.nativeBuildInputs
+              ++ (with pkgs; [
+                # Our cross compilation toolchain
+                gcc-arm-embedded-13
 
-              # Our cross compilation toolchain
-              gcc-arm-embedded-13
-
-              # Other build tools
-              cmake
-              gcc
-              git
-              ninja
-              clang-tools_18 # for clang-tidy
-            ];
+                # Other build tools
+                cmake
+                gcc
+                git
+                ninja
+                clang-tools_18 # for clang-tidy
+              ]);
           };
 
           default = pkgs.mkShellNoCC {
-            # PYTHONPATH = "${self.devShells.${system}.buildenv.PYTHONPATH}";
+            PYTHONPATH = "${self.devShells.${system}.buildenv.PYTHONPATH}";
 
-            packages = (with pkgs; [
-              # GDB from gcc-arm-embedded is broken so we include this one
-              pkgsCross.arm-embedded.buildPackages.gdb
+            packages = self.devShells.${system}.buildenv.nativeBuildInputs
+              ++ (with pkgs; [
+                # GDB from gcc-arm-embedded is broken so we include this one
+                pkgsCross.arm-embedded.buildPackages.gdb
 
-              # For ST-Link development
-              openocd-stm
-            ]) ++ self.devShells.${system}.buildenv.nativeBuildInputs;
+                # For ST-Link development
+                openocd-stm
+              ]);
           };
 
           cubemx = pkgs.mkShellNoCC {
