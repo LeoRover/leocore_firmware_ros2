@@ -8,6 +8,8 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS ON)
 
+include (cmake/gcc-arm-none-eabi.cmake)
+
 project(leocore_firmware)
 enable_language(C CXX ASM)
 
@@ -23,19 +25,17 @@ FetchContent_Declare(
     SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external/micro_ros_cmake"
 )
 
+set(MICRO_ROS_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/gcc-arm-none-eabi.cmake" CACHE STRING "" FORCE)
+set(MICRO_ROS_COLCON_META_FILE "${CMAKE_CURRENT_SOURCE_DIR}/Micro-ROS/colcon.meta" CACHE STRING "" FORCE)
+
 FetchContent_MakeAvailable(micro_ros_cmake)
 
 message("Build type: " ${CMAKE_BUILD_TYPE})
-message(STATUS "CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH}")
-
 
 # Add STM32CubeMX generated sources
 add_subdirectory(cmake/stm32cubemx)
 
 find_package(micro_ros_cmake REQUIRED)
-
-message(STATUS "PYTHONPATH: ${PYTHONPATH}")
-
 find_package(ament_cmake REQUIRED)
 
 # Create an executable object type

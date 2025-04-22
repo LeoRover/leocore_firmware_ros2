@@ -1,0 +1,36 @@
+{
+    "names": {
+        "microxrcedds_client": {
+            "cmake-args": [
+                "-DUCLIENT_PIC=OFF",
+                "-DUCLIENT_PROFILE_UDP=OFF",
+                "-DUCLIENT_PROFILE_TCP=OFF",
+                "-DUCLIENT_PROFILE_DISCOVERY=OFF",
+                "-DUCLIENT_PROFILE_MULTITHREAD=OFF",
+                "-DUCLIENT_PROFILE_SERIAL=OFF",
+                "-DUCLIENT_PROFILE_STREAM_FRAMING=ON",
+                "-DUCLIENT_PROFILE_CUSTOM_TRANSPORT=ON",
+                "-DUCLIENT_HARD_LIVELINESS_CHECK=ON",
+                "-DUCLIENT_HARD_LIVELINESS_CHECK_TIMEOUT=10000"
+            ]
+        },
+        "rmw_microxrcedds": {
+            "cmake-args": [
+                "-DRMW_UXRCE_MAX_NODES=1",
+                "-DRMW_UXRCE_MAX_PUBLISHERS=7",
+                "-DRMW_UXRCE_MAX_SUBSCRIPTIONS=9",
+                "-DRMW_UXRCE_MAX_SERVICES=10",
+                "-DRMW_UXRCE_MAX_CLIENTS=0",
+                "-DRMW_UXRCE_MAX_HISTORY=4",
+                "-DRMW_UXRCE_TRANSPORT=custom",
+                "-DRMW_UXRCE_ENTITY_CREATION_TIMEOUT=100",
+                "-DRMW_UXRCE_ENTITY_DESTROY_TIMEOUT=0"
+            ]
+        },
+        "rclc_parameter": {
+            "cmake-args": [
+                "-DRCLC_PARAMETER_MAX_STRING_LENGTH=42"
+            ]
+        }
+    }
+}
