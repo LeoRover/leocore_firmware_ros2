@@ -27,6 +27,7 @@ FetchContent_Declare(
 
 set(MICRO_ROS_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/gcc-arm-none-eabi.cmake" CACHE STRING "" FORCE)
 set(MICRO_ROS_COLCON_META_FILE "${CMAKE_CURRENT_SOURCE_DIR}/Micro-ROS/colcon.meta" CACHE STRING "" FORCE)
+set(MICRO_ROS_EXTRA_PACKAGES_FILE "${CMAKE_CURRENT_SOURCE_DIR}/Micro-ROS/extra_packages.repos" CACHE STRING "" FORCE)
 
 FetchContent_MakeAvailable(micro_ros_cmake)
 
