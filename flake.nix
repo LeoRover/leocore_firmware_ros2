@@ -33,8 +33,6 @@
       in {
         devShells = {
           buildenv = pkgs.mkShellNoCC {
-            PYTHONPATH = micro_ros_cmake.devShells.${system}.default.PYTHONPATH;
-
             packages =
               micro_ros_cmake.devShells.${system}.default.nativeBuildInputs
               ++ (with pkgs; [
@@ -51,8 +49,6 @@
           };
 
           default = pkgs.mkShellNoCC {
-            PYTHONPATH = "${self.devShells.${system}.buildenv.PYTHONPATH}";
-
             packages = self.devShells.${system}.buildenv.nativeBuildInputs
               ++ (with pkgs; [
                 # GDB from gcc-arm-embedded is broken so we include this one
