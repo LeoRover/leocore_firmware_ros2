@@ -39,29 +39,30 @@ add_subdirectory(cmake/stm32cubemx)
 
 find_package(micro_ros_cmake REQUIRED)
 find_package(ament_cmake REQUIRED)
+find_package(geometry_msgs REQUIRED)
+find_package(leo_msgs REQUIRED)
 find_package(microxrcedds_client REQUIRED)
+find_package(rcl REQUIRED)
+find_package(rclc REQUIRED)
+find_package(rclc_parameter REQUIRED)
+find_package(rosidl_runtime_c REQUIRED)
 find_package(rmw_microxrcedds REQUIRED)
+find_package(std_msgs REQUIRED)
+find_package(std_srvs REQUIRED)
 
-# Create an executable object type
 add_executable(${PROJECT_NAME})
 
-# Link directories setup
-target_link_directories(${PROJECT_NAME} PRIVATE
-    # Add user defined library search paths
-)
-
-# Add sources to executable
 target_sources(${PROJECT_NAME} PRIVATE
     App/Src/app.cpp
     App/Src/imu_receiver.cpp
     App/Src/motor_controller.cpp
+    App/Src/parameters.cpp
     Drivers/icm42605/ICM42605.cpp
     external/micro_ros_cmake/extra_sources/allocators/first_fit.c
     external/micro_ros_cmake/extra_sources/clocks/clock_stm32cube.c
     external/micro_ros_cmake/extra_sources/transports/stm32cube/microros_serial.c
 )
 
-# Add include paths
 target_include_directories(${PROJECT_NAME} PRIVATE
     App/Inc
     Drivers/icm42605
@@ -70,19 +71,30 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     external/micro_ros_cmake/extra_sources/transports/stm32cube/include
 )
 
-# Add project symbols (macros)
 target_compile_definitions(${PROJECT_NAME} PRIVATE
     STM32F4xx
+    MICROROS_HEAP_SIZE=30000
 )
 
-# Add linked libraries
 target_link_libraries(${PROJECT_NAME}
     stm32cubemx
-
-    # Add user defined libraries
     microxrcedds_client
+    rcl::rcl
+    rclc::rclc
+    rclc_parameter::rclc_parameter
+    rosidl_runtime_c::rosidl_runtime_c
 )
 
 ament_target_dependencies(${PROJECT_NAME}
+    "geometry_msgs"
+    "leo_msgs"
     "rmw_microxrcedds"
+    "std_msgs"
+    "std_srvs"
 )
+
+target_link_options(${PROJECT_NAME} PRIVATE
+  -Wl,--start-group
+)
+
+set(CMAKE_CXX_STANDARD_LIBRARIES "-Wl,--end-group")

@@ -1,4 +1,4 @@
-#include "firmware/parameters.hpp"
+#include "app/parameters.hpp"
 
 constexpr const char* wheel_encoder_resolution_param_name =
     "wheels/encoder_resolution";
@@ -100,6 +100,7 @@ inline void get_parameter_int(rclc_parameter_server_t* param_server,
   rclc_parameter_get_int(param_server, param_name, &tmp);
   *output = static_cast<int>(tmp);
 }
+
 
 void Parameters::update(rclc_parameter_server_t* param_server) {
   get_parameter_double(param_server, wheel_encoder_resolution_param_name,

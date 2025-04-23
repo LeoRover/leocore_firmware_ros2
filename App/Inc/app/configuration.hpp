@@ -11,9 +11,6 @@
 
 extern volatile uint16_t adc_buff[5]; // TODO: Move somewhere else
 
-// Size of the heap memory used for micro-ROS entities
-constexpr uint32_t UROS_HEAP_SIZE = 30000;
-
 // UART used for micro-ROS communication
 static constexpr UART_HandleTypeDef& UROS_UART = huart1;
 
