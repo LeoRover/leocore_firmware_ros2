@@ -9,6 +9,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS ON)
 
 include (cmake/gcc-arm-none-eabi.cmake)
+include (cmake/firmware_version.cmake)
 
 project(leocore_firmware)
 enable_language(C CXX ASM)
