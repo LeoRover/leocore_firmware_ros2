@@ -8,7 +8,18 @@
 	"tasks": [
 		{
 			"type": "cmake",
+			"label": "configure",
+			"command": "configure",
+			"preset": "default",
+			"group": "none",
+		},
+
+		{
+			"type": "cmake",
 			"label": "Debug build",
+			"dependsOn": [
+				"configure"
+			],
 			"command": "build",
 			"targets": [
 				"all"
@@ -38,6 +49,9 @@
 		{
 			"type": "cmake",
 			"label": "Release build",
+			"dependsOn": [
+				"configure"
+			],
 			"command": "build",
 			"targets": [
 				"all"
