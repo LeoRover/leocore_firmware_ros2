@@ -7,29 +7,7 @@
   };
   outputs = { self, nixpkgs, flake-utils, micro_ros_cmake }:
     flake-utils.lib.eachDefaultSystem (system:
-      let
-        pkgs = (import nixpkgs { system = system; });
-
-        openocd-stm = pkgs.openocd.overrideAttrs (old: {
-          src = pkgs.fetchFromGitHub {
-            owner = "STMicroelectronics";
-            repo = "OpenOCD";
-            rev = "26301c4";
-            sha256 = "sha256-7REQi9pcT6pn8yiAMpQpRQ+0ouMQelcciMAHyUonkVA=";
-          };
-          nativeBuildInputs = with pkgs; [
-            autoconf
-            automake
-            pkg-config
-            libtool
-            texinfo
-            which
-          ];
-          preConfigure = ''
-            ./bootstrap nosubmodule
-          '';
-        });
-
+      let pkgs = (import nixpkgs { system = system; });
       in {
         devShells = {
           buildenv = pkgs.mkShellNoCC {
@@ -48,12 +26,12 @@
 
           default = pkgs.mkShellNoCC {
             packages = (with pkgs; [
-                # GDB from gcc-arm-embedded is broken so we include this one
-                pkgsCross.arm-embedded.buildPackages.gdb
+              # GDB from gcc-arm-embedded is broken so we include this one
+              pkgsCross.arm-embedded.buildPackages.gdb
 
-                # For ST-Link development
-                openocd-stm
-              ]) ++ self.devShells.${system}.buildenv.nativeBuildInputs;
+              # For ST-Link development
+              openocd
+            ]) ++ self.devShells.${system}.buildenv.nativeBuildInputs;
           };
 
           cubemx = pkgs.mkShellNoCC {
