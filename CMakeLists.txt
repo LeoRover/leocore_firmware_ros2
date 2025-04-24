@@ -32,9 +32,6 @@ set(MICRO_ROS_EXTRA_PACKAGES_FILE "${CMAKE_CURRENT_SOURCE_DIR}/Micro-ROS/extra_p
 
 FetchContent_MakeAvailable(micro_ros_cmake)
 
-# Add STM32CubeMX generated sources
-add_subdirectory(cmake/stm32cubemx)
-
 find_package(micro_ros_cmake REQUIRED)
 find_package(ament_cmake REQUIRED)
 find_package(geometry_msgs REQUIRED)
@@ -49,6 +46,9 @@ find_package(std_msgs REQUIRED)
 find_package(std_srvs REQUIRED)
 
 add_executable(${PROJECT_NAME})
+
+# Add STM32CubeMX generated sources
+add_subdirectory(cmake/stm32cubemx)
 
 target_sources(${PROJECT_NAME} PRIVATE
     App/Src/app.cpp
@@ -75,7 +75,6 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
 )
 
 target_link_libraries(${PROJECT_NAME}
-    stm32cubemx
     microxrcedds_client
     rcl::rcl
     rclc::rclc
