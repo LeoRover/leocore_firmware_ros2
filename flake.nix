@@ -33,30 +33,27 @@
       in {
         devShells = {
           buildenv = pkgs.mkShellNoCC {
-            packages =
-              micro_ros_cmake.devShells.${system}.default.nativeBuildInputs
-              ++ (with pkgs; [
-                # Our cross compilation toolchain
-                gcc-arm-embedded-13
+            packages = (with pkgs; [
+              # Our cross compilation toolchain
+              gcc-arm-embedded-13
 
-                # Other build tools
-                cmake
-                gcc
-                git
-                ninja
-                clang-tools_18 # for clang-tidy
-              ]);
+              # Other build tools
+              cmake
+              gcc
+              git
+              ninja
+              clang-tools_18 # for clang-tidy
+            ]) ++ micro_ros_cmake.devShells.${system}.default.nativeBuildInputs;
           };
 
           default = pkgs.mkShellNoCC {
-            packages = self.devShells.${system}.buildenv.nativeBuildInputs
-              ++ (with pkgs; [
+            packages = (with pkgs; [
                 # GDB from gcc-arm-embedded is broken so we include this one
                 pkgsCross.arm-embedded.buildPackages.gdb
 
                 # For ST-Link development
                 openocd-stm
-              ]);
+              ]) ++ self.devShells.${system}.buildenv.nativeBuildInputs;
           };
 
           cubemx = pkgs.mkShellNoCC {
