@@ -22,8 +22,14 @@ inline void gpio_toggle(const GPIO& gpio) {
   HAL_GPIO_TogglePin(gpio.port, gpio.pin);
 }
 
-inline uint32_t time() { return HAL_GetTick(); }
+inline uint32_t time() {
+  return HAL_GetTick();
+}
 
-inline void reset() { NVIC_SystemReset(); }
+inline void reset() {
+  NVIC_SystemReset();
+}
 
-inline void delay(uint32_t delay_ms) { HAL_Delay(delay_ms); }
+inline void delay(uint32_t delay_ms) {
+  HAL_Delay(delay_ms);
+}

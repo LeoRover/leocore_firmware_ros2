@@ -9,7 +9,7 @@
 #include "app/hal_compat.hpp"
 #include "app/motor_controller.hpp"
 
-extern volatile uint16_t adc_buff[5]; // TODO: Move somewhere else
+extern volatile uint16_t adc_buff[5];  // TODO: Move somewhere else
 
 // UART used for micro-ROS communication
 static constexpr UART_HandleTypeDef& UROS_UART = huart1;

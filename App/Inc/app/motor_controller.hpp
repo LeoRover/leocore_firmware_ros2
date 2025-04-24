@@ -16,7 +16,7 @@ struct MotorConfiguration {
 
 class MotorController : public diff_drive_lib::MotorControllerInterface {
  public:
-  MotorController(const MotorConfiguration &config) : config_(config){};
+  MotorController(const MotorConfiguration &config) : config_(config) {};
 
   void init() override;
   void setPWMDutyCycle(float pwm_duty) override;

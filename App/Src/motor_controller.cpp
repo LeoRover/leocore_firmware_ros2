@@ -32,7 +32,9 @@ void MotorController::setPWMDutyCycle(float pwm_duty) {
   }
 }
 
-float MotorController::getPWMDutyCycle() { return pwm_duty_; }
+float MotorController::getPWMDutyCycle() {
+  return pwm_duty_;
+}
 
 int32_t MotorController::getEncoderCnt() {
   uint16_t ticks_timer = *config_.enc_cnt;
