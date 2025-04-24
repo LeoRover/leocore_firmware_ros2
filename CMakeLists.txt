@@ -10,6 +10,7 @@ set(CMAKE_CXX_EXTENSIONS ON)
 
 include (cmake/gcc-arm-none-eabi.cmake)
 include (cmake/firmware_version.cmake)
+include (cmake/utils.cmake)
 
 project(leocore_firmware)
 enable_language(C CXX ASM)
@@ -95,3 +96,6 @@ target_link_options(${PROJECT_NAME} PRIVATE
 )
 
 set(CMAKE_CXX_STANDARD_LIBRARIES "-Wl,--end-group")
+
+show_sections_size(${PROJECT_NAME})
+generate_hex_bin(${PROJECT_NAME})
