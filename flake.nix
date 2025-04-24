@@ -42,7 +42,7 @@
               gcc
               git
               ninja
-              clang-tools_18 # for clang-tidy
+              llvmPackages_20.clang-tools # for clang-tidy
             ]) ++ micro_ros_cmake.devShells.${system}.default.nativeBuildInputs;
           };
 
