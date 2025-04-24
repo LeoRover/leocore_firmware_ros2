@@ -1,0 +1,67 @@
+{
+	"version": "2.0.0",
+	"options": {
+		"env": {
+			"PATH": "${workspaceFolder}/toolchain/bin:${env:PATH}"
+		}
+	},
+	"tasks": [
+		{
+			"type": "cmake",
+			"label": "Debug build",
+			"command": "build",
+			"targets": [
+				"all"
+			],
+			"preset": "Debug",
+			"group": "build",
+			"problemMatcher": []
+		},
+		{
+			"type": "shell",
+			"label": "Debug flash",
+			"dependsOn": [
+				"Debug build"
+			],
+			"command": "openocd -f openocd.cfg -c \"program build/Debug/leocore_firmware.elf verify reset exit\"",
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "shared",
+				"showReuseMessage": true,
+				"clear": false
+			},
+			"problemMatcher": []
+		},
+
+		{
+			"type": "cmake",
+			"label": "Release build",
+			"command": "build",
+			"targets": [
+				"all"
+			],
+			"preset": "Release",
+			"group": "build",
+			"problemMatcher": []
+		},
+		{
+			"type": "shell",
+			"label": "Release flash",
+			"dependsOn": [
+				"Release build"
+			],
+			"command": "openocd -f openocd.cfg -c \"program build/Release/leocore_firmware.elf verify reset exit\"",
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "shared",
+				"showReuseMessage": true,
+				"clear": false
+			},
+			"problemMatcher": []
+		}
+	]
+}
