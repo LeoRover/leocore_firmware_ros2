@@ -3,6 +3,7 @@
         "ms-vscode.cpptools",
         "ms-vscode.cmake-tools",
         "xaver.clang-format",
-        "marus25.cortex-debug"
+        "marus25.cortex-debug",
+        "mkhl.direnv"
     ]
 }
