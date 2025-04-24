@@ -14,9 +14,8 @@ include (cmake/firmware_version.cmake)
 project(leocore_firmware)
 enable_language(C CXX ASM)
 
-# Define the build type
-if(NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE "Debug")
+if(CMAKE_CONFIGURATION_TYPES)
+  set(CMAKE_CONFIGURATION_TYPES Debug Release)
 endif()
 
 include(FetchContent)
@@ -31,8 +30,6 @@ set(MICRO_ROS_COLCON_META_FILE "${CMAKE_CURRENT_SOURCE_DIR}/Micro-ROS/colcon.met
 set(MICRO_ROS_EXTRA_PACKAGES_FILE "${CMAKE_CURRENT_SOURCE_DIR}/Micro-ROS/extra_packages.repos" CACHE STRING "" FORCE)
 
 FetchContent_MakeAvailable(micro_ros_cmake)
-
-message("Build type: " ${CMAKE_BUILD_TYPE})
 
 # Add STM32CubeMX generated sources
 add_subdirectory(cmake/stm32cubemx)
