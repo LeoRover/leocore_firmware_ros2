@@ -1,0 +1,33 @@
+{
+    "configurations": [
+        {
+            "showDevDebugOutput": "parsed",
+            "cwd": "${workspaceRoot}",
+            "executable": "build/Debug/leocore_firmware.elf",
+            "name": "Debug Firmware",
+            "request": "launch",
+            "type": "cortex-debug",
+            "servertype": "openocd",
+            "preLaunchTask": "Debug build",
+            "device": "stm32f401",
+            "configFiles": [
+                "openocd.cfg"
+            ],
+        },
+        
+        {
+            "showDevDebugOutput": "parsed",
+            "cwd": "${workspaceRoot}",
+            "executable": "build/Debug/leocore_firmware.elf",
+            "name": "Attach Firmware",
+            "request": "attach",
+            "type": "cortex-debug",
+            "servertype": "openocd",
+            "preLaunchTask": "Debug build",
+            "device": "stm32f401",
+            "configFiles": [
+                "openocd.cfg"
+            ]
+        }
+    ]
+}
