@@ -58,7 +58,7 @@ target_sources(${PROJECT_NAME} PRIVATE
     App/Src/motor_controller.cpp
     App/Src/parameters.cpp
     Drivers/icm42605/ICM42605.cpp
-    external/micro_ros_cmake/extra_sources/allocators/first_fit.c
+    external/micro_ros_cmake/extra_sources/allocators/linear.c
     external/micro_ros_cmake/extra_sources/clocks/clock_stm32cube.c
     external/micro_ros_cmake/extra_sources/transports/stm32cube/microros_serial.c
 )

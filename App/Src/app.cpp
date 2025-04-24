@@ -71,6 +71,8 @@ static std::atomic_bool publish_param_trigger(true);
 static bool mecanum_wheels = false;
 static std::atomic_bool controller_initialized(false);
 
+static size_t reset_pointer_position;
+
 #define WHEEL_WRAPPER(NAME)                         \
   constexpr const char* NAME##_cmd_pwm_topic =      \
       "~/wheel_" #NAME "/cmd_pwm_duty";             \
@@ -459,7 +461,7 @@ void setup() {
 
 void initController() {
   mecanum_wheels = params.mecanum_wheels;
-  // reset_pointer_position = heap_get_current_pointer();
+  reset_pointer_position = microros_heap_get_current_pointer();
   if (mecanum_wheels) {
     rclc_publisher_init_best_effort(
         &wheel_odom_mecanum_pub, &node,
@@ -488,7 +490,7 @@ void finiController() {
     (void)!rcl_publisher_fini(&wheel_odom_pub, &node);
   }
   controller->~RobotController();
-  // heap_set_current_pointer(reset_pointer_position);
+  microros_heap_set_current_pointer(reset_pointer_position);
 }
 
 void loop() {
@@ -738,15 +740,28 @@ extern "C" void app_main() {
   }
 }
 
+extern "C" {
 
-extern "C" void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim) {
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim) {
   if (htim->Instance == TIM11) {
     update();
   }
 }
 
-extern "C" void HAL_UART_TxCpltCallback(UART_HandleTypeDef* huart) {
+void HAL_UART_TxCpltCallback(UART_HandleTypeDef* huart) {
   if (huart == &UROS_UART) {
     microros_uart_transfer_complete_callback(&stream);
   }
+}
+
+void microros_allocator_error(const char* msg) {
+  (void)!msg;
+}
+
+void microros_allocator_fail(const char* msg) {
+  (void)!msg;
+  __disable_irq();
+  while (1) {
+  }
+}
 }
