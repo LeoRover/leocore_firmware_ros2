@@ -62,6 +62,16 @@
 				"clear": false
 			},
 			"problemMatcher": []
-		}
+		},
+		{
+			"type": "cmake",
+			"label": "Rebuild Micro-ROS libraries",
+			"command": "build",
+			"targets": [
+				"rebuild_micro_ros"
+			],
+			"group": "build",
+			"problemMatcher": []
+		},
 	]
 }
