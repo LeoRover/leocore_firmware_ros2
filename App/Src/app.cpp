@@ -144,7 +144,7 @@ static void cmdVelCallback(const void* msgin) {
     controller->setSpeed(msg->linear.x, msg->linear.y, msg->angular.z);
 }
 
-static void resetOdometryCallback(const void* reqin, void* resin) {
+static void resetOdometryCallback(const void* /*reqin*/, void* resin) {
   std_srvs__srv__Trigger_Response* res =
       (std_srvs__srv__Trigger_Response*)resin;
   if (controller_initialized) {
@@ -153,7 +153,7 @@ static void resetOdometryCallback(const void* reqin, void* resin) {
   }
 }
 
-static void resetBoardCallback(const void* reqin, void* resin) {
+static void resetBoardCallback(const void* /*reqin*/, void* resin) {
   std_srvs__srv__Trigger_Response* res =
       (std_srvs__srv__Trigger_Response*)resin;
   reset_request = true;
@@ -162,14 +162,14 @@ static void resetBoardCallback(const void* reqin, void* resin) {
   res->success = true;
 }
 
-static void getFirmwareVersionCallback(const void* reqin, void* resin) {
+static void getFirmwareVersionCallback(const void* /*reqin*/, void* resin) {
   std_srvs__srv__Trigger_Response* res =
       (std_srvs__srv__Trigger_Response*)resin;
   rosidl_runtime_c__String__assign(&res->message, FIRMWARE_VERSION);
   res->success = true;
 }
 
-static void getBoardTypeCallback(const void* reqin, void* resin) {
+static void getBoardTypeCallback(const void* /*reqin*/, void* resin) {
   std_srvs__srv__Trigger_Response* res =
       (std_srvs__srv__Trigger_Response*)resin;
   rosidl_runtime_c__String__assign(&res->message, "leocore");
@@ -238,7 +238,7 @@ static void wheelCmdVelCallback(const void* msgin, void* context) {
   }
 }
 
-static void bootFirmwareCallback(const void* reqin, void* resin) {
+static void bootFirmwareCallback(const void* /*reqin*/, void* resin) {
   std_srvs__srv__Trigger_Response* res =
       (std_srvs__srv__Trigger_Response*)resin;
   boot_request = true;
@@ -252,12 +252,14 @@ static bool parameterChangedCallback(const Parameter*, const Parameter*,
   return true;
 }
 
-static void pingTimerCallback(rcl_timer_t* timer, int64_t last_call_time) {
+static void pingTimerCallback(rcl_timer_t* /*timer*/,
+                              int64_t /*last_call_time*/) {
   if (rmw_uros_ping_agent(200, 3) != RMW_RET_OK)
     status = AgentStatus::AGENT_LOST;
 }
 
-static void syncTimerCallback(rcl_timer_t* timer, int64_t last_call_time) {
+static void syncTimerCallback(rcl_timer_t* /*timer*/,
+                              int64_t /*last_call_time*/) {
   rmw_uros_sync_session(1000);
 }
 
@@ -425,7 +427,7 @@ static void finiROS() {
   (void)!rcl_init_options_fini(&init_options);
   rclc_support_fini(&support);
 
-  microros_reset_heap_state();
+  microros_heap_reset_state();
 }
 
 volatile uint16_t adc_buff[5];
@@ -433,7 +435,7 @@ volatile uint16_t adc_buff[5];
 static uint8_t uart_rbuffer[2048];
 static uint8_t uart_tbuffer[2048];
 
-static DMAStream stream = {
+static microros_serial_dma_stream_t stream = {
     .uart = &UROS_UART,
     .rbuffer_size = 2048,
     .rbuffer = uart_rbuffer,
