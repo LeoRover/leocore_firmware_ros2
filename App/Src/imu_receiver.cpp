@@ -22,11 +22,41 @@ void ImuReceiver::update() {
   icm_.readData(ICM42605Data);
 
   temp = static_cast<float>(ICM42605Data[0]) * TEMP_RESOLUTION + TEMP_OFFSET;
-  ax = static_cast<float>(ICM42605Data[2]) * ares_ * GRAVITATIONAL_ACCELERATION;
-  ay = static_cast<float>(ICM42605Data[1]) * ares_ * GRAVITATIONAL_ACCELERATION;
-  az =
+
+  float ax_ =
+      static_cast<float>(ICM42605Data[1]) * ares_ * GRAVITATIONAL_ACCELERATION;
+  float ay_ =
+      static_cast<float>(ICM42605Data[2]) * ares_ * GRAVITATIONAL_ACCELERATION;
+  float az_ =
       -static_cast<float>(ICM42605Data[3]) * ares_ * GRAVITATIONAL_ACCELERATION;
-  gx = static_cast<float>(ICM42605Data[5]) * gres_ * DEGREE_TO_RADIAN;
-  gy = static_cast<float>(ICM42605Data[4]) * gres_ * DEGREE_TO_RADIAN;
-  gz = -static_cast<float>(ICM42605Data[6]) * gres_ * DEGREE_TO_RADIAN;
+  float gx_ = static_cast<float>(ICM42605Data[4]) * gres_ * DEGREE_TO_RADIAN;
+  float gy_ = static_cast<float>(ICM42605Data[5]) * gres_ * DEGREE_TO_RADIAN;
+  float gz_ = -static_cast<float>(ICM42605Data[6]) * gres_ * DEGREE_TO_RADIAN;
+
+  switch (orientation_) {
+    case Orientation::DEFAULT:
+      ax = ax_;
+      ay = ay_;
+      az = az_;
+      gx = gx_;
+      gy = gy_;
+      gz = gz_;
+      break;
+    case Orientation::X_LEFT_Z_DOWN:
+      ax = ay_;
+      ay = ax_;
+      az = -az_;
+      gx = gy_;
+      gy = gx_;
+      gz = -gz_;
+      break;
+    case Orientation::X_LEFT_Z_FORWARD:
+      ax = az_;
+      ay = ax_;
+      az = ay_;
+      gx = gz_;
+      gy = gx_;
+      gz = gy_;
+      break;
+  }
 }

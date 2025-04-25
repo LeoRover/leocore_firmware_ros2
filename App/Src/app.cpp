@@ -466,6 +466,13 @@ void initController() {
   mecanum_wheels = params.mecanum_wheels;
   leo_hardware_version = params.leo_hardware_version;
 
+  // Set IMU orientation based on hardware version
+  if (leo_hardware_version < 109) {
+    imu_receiver.setOrientation(ImuReceiver::Orientation::X_LEFT_Z_DOWN);
+  } else {
+    imu_receiver.setOrientation(ImuReceiver::Orientation::X_LEFT_Z_FORWARD);
+  }
+
   const diff_drive_lib::RobotConfiguration robot_config =
       (leo_hardware_version < 109) ? ROBOT_CONFIG_108 : ROBOT_CONFIG;
 
