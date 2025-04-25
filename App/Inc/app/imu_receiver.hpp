@@ -18,12 +18,15 @@ class ImuReceiver {
     X_LEFT_Z_FORWARD = 2,
   };
 
-  explicit ImuReceiver(I2C_HandleTypeDef* i2c) : icm_(i2c), orientation_(Orientation::DEFAULT) {}
+  explicit ImuReceiver(I2C_HandleTypeDef* i2c)
+      : icm_(i2c), orientation_(Orientation::DEFAULT) {}
 
   void init();
   void update();
 
-  void setOrientation(Orientation orientation) { orientation_ = orientation; }
+  void setOrientation(Orientation orientation) {
+    orientation_ = orientation;
+  }
 
   float temp;        // temperature
   float ax, ay, az;  // accelerometer data
