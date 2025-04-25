@@ -1,4 +1,4 @@
-name: PlatformIO CI
+name: CI
 
 on:
   workflow_dispatch:
@@ -8,26 +8,43 @@ on:
   pull_request:
     branches:
       - master
-  schedule:
-    - cron: "0 6 * * *"
 
 jobs:
+  clang-format_check:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+      - name: Check formatting
+        uses: jidicula/clang-format-action@v4.15.0
+        with:
+          clang-format-version: "20"
+          check-path: "App"
+          fallback-style: "LLVM"
   build:
     runs-on: ubuntu-22.04
-
     steps:
-      - uses: actions/checkout@v3
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      - name: Checkout repo
+        uses: actions/checkout@v3
         with:
-          python-version: '3.10'
-      - name: Install PlatformIO environment
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y cmake
-          curl -fsSL -o get-platformio.py https://raw.githubusercontent.com/platformio/platformio-core-installer/master/get-platformio.py
-          python3 get-platformio.py
-      - name: Run PlatformIO
-        run: |
-          export PATH=$PATH:~/.platformio/penv/bin
-          pio run -e leocore
+          submodules: true
+      - name: Install Nix
+        uses: cachix/install-nix-action@v31
+      - name: Prepare Nix development environment
+        uses: rrbutani/use-nix-shell-action@v1.1.0
+        with:
+          devShell: .#buildenv
+      - name: Run CMake (configure)
+        uses: lukka/run-cmake@v10
+        with:
+          configurePreset: "default"
+      - name: Run CMake (Debug build)
+        uses: lukka/run-cmake@v10
+        with:
+          configurePreset: "default"
+          buildPreset: "Debug"
+      - name: Run CMake (Release build)
+        uses: lukka/run-cmake@v10
+        with:
+          configurePreset: "default"
+          buildPreset: "Release"

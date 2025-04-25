@@ -1,0 +1,6 @@
+[submodule "diff_drive_lib"]
+	path = external/diff_drive_lib
+	url = https://github.com/fictionlab/diff_drive_lib.git
+[submodule "micro_ros_cmake"]
+	path = external/micro_ros_cmake
+	url = https://github.com/fictionlab/micro_ros_cmake.git
