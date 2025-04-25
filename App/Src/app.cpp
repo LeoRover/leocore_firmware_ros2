@@ -69,7 +69,7 @@ static rcl_publisher_t param_trigger_pub;
 static std::atomic_bool publish_param_trigger(true);
 
 static bool mecanum_wheels = false;
-static int leo_hardware_version = 109;
+static int leo_hardware_version = 108;
 static std::atomic_bool controller_initialized(false);
 
 static size_t reset_pointer_position;
