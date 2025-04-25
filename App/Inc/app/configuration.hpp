@@ -118,7 +118,8 @@ extern MotorController MotB;
 extern MotorController MotC;
 extern MotorController MotD;
 
-constexpr diff_drive_lib::RobotConfiguration ROBOT_CONFIG = {
+// Robot configuration for Leo Rover v1.8 or earlier
+constexpr diff_drive_lib::RobotConfiguration ROBOT_CONFIG_108 = {
     .wheel_FL_conf =
         {
             .motor = MotC,
@@ -137,6 +138,30 @@ constexpr diff_drive_lib::RobotConfiguration ROBOT_CONFIG = {
     .wheel_RR_conf =
         {
             .motor = MotB,
+            .op_mode = diff_drive_lib::WheelOperationMode::VELOCITY,
+        },
+};
+
+// Robot configuration for Leo Rover v1.9 or later
+constexpr diff_drive_lib::RobotConfiguration ROBOT_CONFIG = {
+    .wheel_FL_conf =
+        {
+            .motor = MotD,
+            .op_mode = diff_drive_lib::WheelOperationMode::VELOCITY,
+        },
+    .wheel_RL_conf =
+        {
+            .motor = MotC,
+            .op_mode = diff_drive_lib::WheelOperationMode::VELOCITY,
+        },
+    .wheel_FR_conf =
+        {
+            .motor = MotB,
+            .op_mode = diff_drive_lib::WheelOperationMode::VELOCITY,
+        },
+    .wheel_RR_conf =
+        {
+            .motor = MotA,
             .op_mode = diff_drive_lib::WheelOperationMode::VELOCITY,
         },
 };

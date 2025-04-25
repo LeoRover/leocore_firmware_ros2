@@ -20,6 +20,7 @@ constexpr const char* controller_angular_velocity_multiplier_param_name =
 constexpr const char* controller_input_timeout_param_name =
     "controller/input_timeout";
 constexpr const char* battery_min_voltage_param_name = "battery_min_voltage";
+constexpr const char* leo_hardware_version_param_name = "leo_hardware_version";
 
 inline rcl_ret_t init_parameter_double(rclc_parameter_server_t* param_server,
                                        const char* param_name,
@@ -84,6 +85,8 @@ bool Parameters::init(rclc_parameter_server_t* param_server) {
                              robot_input_timeout))
   RCCHECK(init_parameter_double(param_server, battery_min_voltage_param_name,
                                 battery_min_voltage))
+  RCCHECK(init_parameter_int(param_server, leo_hardware_version_param_name,
+                             leo_hardware_version))
   return true;
 }
 
@@ -126,4 +129,6 @@ void Parameters::update(rclc_parameter_server_t* param_server) {
                     &robot_input_timeout);
   get_parameter_double(param_server, battery_min_voltage_param_name,
                        &battery_min_voltage);
+  get_parameter_int(param_server, leo_hardware_version_param_name,
+                    &leo_hardware_version);
 }
