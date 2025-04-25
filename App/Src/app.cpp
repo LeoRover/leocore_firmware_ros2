@@ -433,14 +433,14 @@ static void finiROS() {
 
 volatile uint16_t adc_buff[5];
 
-static uint8_t uart_rbuffer[2048];
-static uint8_t uart_tbuffer[2048];
+static uint8_t uart_rbuffer[UROS_RBUFFER_SIZE];
+static uint8_t uart_tbuffer[UROS_TBUFFER_SIZE];
 
 static microros_serial_dma_stream_t stream = {
     .uart = &UROS_UART,
-    .rbuffer_size = 2048,
+    .rbuffer_size = UROS_RBUFFER_SIZE,
     .rbuffer = uart_rbuffer,
-    .tbuffer_size = 2048,
+    .tbuffer_size = UROS_TBUFFER_SIZE,
     .tbuffer = uart_tbuffer,
 };
 

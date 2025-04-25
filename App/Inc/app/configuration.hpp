@@ -14,6 +14,10 @@ extern volatile uint16_t adc_buff[5];  // TODO: Move somewhere else
 // UART used for micro-ROS communication
 static constexpr UART_HandleTypeDef& UROS_UART = huart1;
 
+// Size of the UART buffers used for micro-ROS communication
+constexpr size_t UROS_RBUFFER_SIZE = 2048;
+constexpr size_t UROS_TBUFFER_SIZE = 2048;
+
 // Domain ID used for ROS communication
 // When set to 255 it is automatically overridden by the uROS agent
 constexpr size_t ROS_DOMAIN_ID = 255;
