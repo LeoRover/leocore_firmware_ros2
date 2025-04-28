@@ -430,7 +430,7 @@ static void finiROS() {
   microros_heap_reset_state();
 }
 
-volatile uint16_t adc_buff[5];
+volatile uint16_t adc_buff[6];
 
 static uint8_t uart_rbuffer[UROS_RBUFFER_SIZE];
 static uint8_t uart_tbuffer[UROS_TBUFFER_SIZE];
@@ -747,7 +747,10 @@ extern "C" void app_main() {
   HAL_TIM_Encoder_Start(&htim5, TIM_CHANNEL_ALL);
 
   HAL_TIM_Base_Start_IT(&htim11);
-  HAL_ADC_Start_DMA(&hadc1, (uint32_t*)adc_buff, 5);
+  HAL_ADC_Start_DMA(&hadc1, (uint32_t*)adc_buff, 6);
+
+  // Wait for initial ADC conversions
+  delay(5);
 
   setup();
 
