@@ -68,7 +68,7 @@ static rcl_publisher_t param_trigger_pub;
 static std::atomic_bool publish_param_trigger(true);
 
 static bool mecanum_wheels = false;
-static int leo_hardware_version = 108;
+static int leo_hardware_version = 2;
 static std::atomic_bool controller_initialized(false);
 
 static size_t reset_pointer_position;
@@ -202,7 +202,7 @@ static void wheelCmdPWMDutyCallback(const void* msgin, void* context) {
 
     if (wheel) {
       wheel->disable();
-      wheel->motor.setPWMDutyCycle(msg->data);
+      wheel->setPWMDutyCycle(msg->data);
     }
   }
 }
@@ -466,14 +466,14 @@ void initController() {
   leo_hardware_version = params.leo_hardware_version;
 
   // Set IMU orientation based on hardware version
-  if (leo_hardware_version < 109) {
+  if (leo_hardware_version == 1) {
     imu_receiver.setOrientation(ImuReceiver::Orientation::X_LEFT_Z_DOWN);
   } else {
     imu_receiver.setOrientation(ImuReceiver::Orientation::X_LEFT_Z_FORWARD);
   }
 
   const diff_drive_lib::RobotConfiguration robot_config =
-      (leo_hardware_version < 109) ? ROBOT_CONFIG_108 : ROBOT_CONFIG;
+      (leo_hardware_version == 1) ? ROBOT_CONFIG_V1 : ROBOT_CONFIG_V2;
 
   reset_pointer_position = microros_heap_get_current_pointer();
   if (mecanum_wheels) {
