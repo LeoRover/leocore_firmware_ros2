@@ -533,8 +533,9 @@ void loop() {
         publish_param_trigger = false;
       } else if (boot_request || time() - boot_enter_time >= BOOT_TIMEOUT) {
         (void)!rcl_publisher_fini(&param_trigger_pub, &node);
-        (void)!rclc_executor_remove_service(&executor, &boot_firmware_srv);
-        (void)!rcl_service_fini(&boot_firmware_srv, &node);
+        // this causes hard fault later in rcl_wait
+        // (void)!rclc_executor_remove_service(&executor, &boot_firmware_srv);
+        // (void)!rcl_service_fini(&boot_firmware_srv, &node);
         initController();
         status = AgentStatus::AGENT_CONNECTED;
       }
