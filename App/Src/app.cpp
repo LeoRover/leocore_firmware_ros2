@@ -28,7 +28,6 @@
 
 #include "app/configuration.hpp"
 #include "app/imu_receiver.hpp"
-#include "app/microros_allocators.hpp"
 #include "app/parameters.hpp"
 
 static rcl_allocator_t allocator = rcutils_get_zero_initialized_allocator();
