@@ -21,8 +21,6 @@ void MotorController::setPWMDutyCycle(float pwm_duty) {
   int16_t power = static_cast<int16_t>((pwm_duty_ / 100.0F) *
                                        static_cast<float>(PWM_RANGE));
 
-  if (config_.reverse_polarity) power *= -1;
-
   if (power >= 0) {
     gpio_reset(config_.phase);
     *config_.pwm_ccr = static_cast<uint32_t>(power);
@@ -48,7 +46,6 @@ int32_t MotorController::getEncoderCnt() {
   ticks_prev_quarter_ = ticks_quarter;
 
   int32_t ticks = ticks_offset_ + ticks_timer;
-  if (config_.reverse_polarity) ticks *= -1;
   return ticks;
 }
 

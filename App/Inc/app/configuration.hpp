@@ -81,7 +81,6 @@ constexpr MotorConfiguration MOT_A_CONFIG = {
     .enc_cnt = &TIM5->CNT,
     .pwm_ccr = &TIM1->CCR4,
     .vpropi_adc = &adc_buff[3],
-    .reverse_polarity = false,
 };
 
 constexpr MotorConfiguration MOT_B_CONFIG = {
@@ -92,7 +91,6 @@ constexpr MotorConfiguration MOT_B_CONFIG = {
     .enc_cnt = &TIM4->CNT,
     .pwm_ccr = &TIM9->CCR2,
     .vpropi_adc = &adc_buff[2],
-    .reverse_polarity = false,
 };
 
 constexpr MotorConfiguration MOT_C_CONFIG = {
@@ -103,7 +101,6 @@ constexpr MotorConfiguration MOT_C_CONFIG = {
     .enc_cnt = &TIM3->CNT,
     .pwm_ccr = &TIM1->CCR1,
     .vpropi_adc = &adc_buff[0],
-    .reverse_polarity = true,
 };
 
 constexpr MotorConfiguration MOT_D_CONFIG = {
@@ -114,7 +111,6 @@ constexpr MotorConfiguration MOT_D_CONFIG = {
     .enc_cnt = &TIM2->CNT,
     .pwm_ccr = &TIM9->CCR1,
     .vpropi_adc = &adc_buff[1],
-    .reverse_polarity = true,
 };
 
 extern MotorController MotA;

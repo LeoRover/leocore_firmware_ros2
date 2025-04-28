@@ -11,7 +11,6 @@ struct MotorConfiguration {
   volatile uint32_t *enc_cnt;
   volatile uint32_t *pwm_ccr;
   volatile uint16_t *vpropi_adc;
-  bool reverse_polarity;
 };
 
 class MotorController : public diff_drive_lib::MotorControllerInterface {
