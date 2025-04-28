@@ -9,7 +9,7 @@ static int64_t rand_next;
 extern "C" void srand(unsigned int seed) {
   rand_next = seed;
   for (int i = 0; i < 6; ++i) {
-    rand_next ^= ((int64_t)adc_buff[i]) << (i * 10); // Spread across 64 bits
+    rand_next ^= ((int64_t)adc_buff[i]) << (i * 10);  // Spread across 64 bits
   }
 }
 
