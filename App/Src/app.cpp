@@ -430,7 +430,7 @@ static void finiROS() {
   microros_heap_reset_state();
 }
 
-volatile uint16_t adc_buff[5];
+volatile uint16_t adc_buff[6];
 
 static uint8_t uart_rbuffer[UROS_RBUFFER_SIZE];
 static uint8_t uart_tbuffer[UROS_TBUFFER_SIZE];
