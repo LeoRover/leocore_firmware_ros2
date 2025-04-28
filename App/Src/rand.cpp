@@ -7,8 +7,10 @@ extern volatile uint16_t adc_buff[6];
 static int64_t rand_next;
 
 extern "C" void srand(unsigned int seed) {
-  rand_next = adc_buff[0] ^ adc_buff[1] ^ adc_buff[2] ^ adc_buff[3] ^
-              adc_buff[4] ^ adc_buff[5] ^ seed;
+  rand_next = seed;
+  for (int i = 0; i < 6; ++i) {
+    rand_next ^= ((int64_t)adc_buff[i]) << (i * 10); // Spread across 64 bits
+  }
 }
 
 extern "C" int rand() {
