@@ -69,6 +69,7 @@ static rcl_publisher_t param_trigger_pub;
 static std::atomic_bool publish_param_trigger(true);
 
 static bool mecanum_wheels = false;
+static int leo_hardware_version = 108;
 static std::atomic_bool controller_initialized(false);
 
 static size_t reset_pointer_position;
@@ -375,7 +376,7 @@ static bool initROS() {
 
   // Parameter Server
   static rclc_parameter_options_t param_options;
-  param_options.max_params = 13;
+  param_options.max_params = 14;
   param_options.notify_changed_over_dds = true;
   RCCHECK(rclc_parameter_server_init_with_option(&param_server, &node,
                                                  &param_options))
@@ -432,14 +433,14 @@ static void finiROS() {
 
 volatile uint16_t adc_buff[5];
 
-static uint8_t uart_rbuffer[2048];
-static uint8_t uart_tbuffer[2048];
+static uint8_t uart_rbuffer[UROS_RBUFFER_SIZE];
+static uint8_t uart_tbuffer[UROS_TBUFFER_SIZE];
 
 static microros_serial_dma_stream_t stream = {
     .uart = &UROS_UART,
-    .rbuffer_size = 2048,
+    .rbuffer_size = UROS_RBUFFER_SIZE,
     .rbuffer = uart_rbuffer,
-    .tbuffer_size = 2048,
+    .tbuffer_size = UROS_TBUFFER_SIZE,
     .tbuffer = uart_tbuffer,
 };
 
@@ -463,6 +464,18 @@ void setup() {
 
 void initController() {
   mecanum_wheels = params.mecanum_wheels;
+  leo_hardware_version = params.leo_hardware_version;
+
+  // Set IMU orientation based on hardware version
+  if (leo_hardware_version < 109) {
+    imu_receiver.setOrientation(ImuReceiver::Orientation::X_LEFT_Z_DOWN);
+  } else {
+    imu_receiver.setOrientation(ImuReceiver::Orientation::X_LEFT_Z_FORWARD);
+  }
+
+  const diff_drive_lib::RobotConfiguration robot_config =
+      (leo_hardware_version < 109) ? ROBOT_CONFIG_108 : ROBOT_CONFIG;
+
   reset_pointer_position = microros_heap_get_current_pointer();
   if (mecanum_wheels) {
     rclc_publisher_init_best_effort(
@@ -471,14 +484,14 @@ void initController() {
         "~/wheel_odom_mecanum");
     controller = new (controller_buffer)
         diff_drive_lib::MecanumController<VELOCITY_ROLLING_WINDOW_SIZE>(
-            ROBOT_CONFIG);
+            robot_config);
   } else {
     rclc_publisher_init_best_effort(
         &wheel_odom_pub, &node,
         ROSIDL_GET_MSG_TYPE_SUPPORT(leo_msgs, msg, WheelOdom), "~/wheel_odom");
     controller = new (controller_buffer)
         diff_drive_lib::DiffDriveController<VELOCITY_ROLLING_WINDOW_SIZE>(
-            ROBOT_CONFIG);
+            robot_config);
   }
   controller->init(params);
   controller_initialized = true;
@@ -560,7 +573,8 @@ void loop() {
 
       if (reload_parameters.exchange(false)) {
         params.update(&param_server);
-        if (params.mecanum_wheels != mecanum_wheels) {
+        if (params.mecanum_wheels != mecanum_wheels ||
+            params.leo_hardware_version != leo_hardware_version) {
           finiController();
           initController();
         } else {

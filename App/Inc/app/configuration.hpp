@@ -14,6 +14,10 @@ extern volatile uint16_t adc_buff[5];  // TODO: Move somewhere else
 // UART used for micro-ROS communication
 static constexpr UART_HandleTypeDef& UROS_UART = huart1;
 
+// Size of the UART buffers used for micro-ROS communication
+constexpr size_t UROS_RBUFFER_SIZE = 2048;
+constexpr size_t UROS_TBUFFER_SIZE = 2048;
+
 // Domain ID used for ROS communication
 // When set to 255 it is automatically overridden by the uROS agent
 constexpr size_t ROS_DOMAIN_ID = 255;
@@ -118,7 +122,8 @@ extern MotorController MotB;
 extern MotorController MotC;
 extern MotorController MotD;
 
-constexpr diff_drive_lib::RobotConfiguration ROBOT_CONFIG = {
+// Robot configuration for Leo Rover v1.8 or earlier
+constexpr diff_drive_lib::RobotConfiguration ROBOT_CONFIG_108 = {
     .wheel_FL_conf =
         {
             .motor = MotC,
@@ -137,6 +142,30 @@ constexpr diff_drive_lib::RobotConfiguration ROBOT_CONFIG = {
     .wheel_RR_conf =
         {
             .motor = MotB,
+            .op_mode = diff_drive_lib::WheelOperationMode::VELOCITY,
+        },
+};
+
+// Robot configuration for Leo Rover v1.9 or later
+constexpr diff_drive_lib::RobotConfiguration ROBOT_CONFIG = {
+    .wheel_FL_conf =
+        {
+            .motor = MotD,
+            .op_mode = diff_drive_lib::WheelOperationMode::VELOCITY,
+        },
+    .wheel_RL_conf =
+        {
+            .motor = MotC,
+            .op_mode = diff_drive_lib::WheelOperationMode::VELOCITY,
+        },
+    .wheel_FR_conf =
+        {
+            .motor = MotB,
+            .op_mode = diff_drive_lib::WheelOperationMode::VELOCITY,
+        },
+    .wheel_RR_conf =
+        {
+            .motor = MotA,
             .op_mode = diff_drive_lib::WheelOperationMode::VELOCITY,
         },
 };

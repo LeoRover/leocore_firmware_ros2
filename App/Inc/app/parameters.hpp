@@ -26,6 +26,8 @@ struct Parameters : diff_drive_lib::RobotParams {
 
   bool mecanum_wheels = false;
 
+  int leo_hardware_version = 108;  // Leo Rover v1.8
+
   bool init(rclc_parameter_server_t* param_server);
   void update(rclc_parameter_server_t* param_server);
 };
