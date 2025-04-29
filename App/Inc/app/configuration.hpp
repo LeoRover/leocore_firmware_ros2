@@ -81,7 +81,6 @@ constexpr MotorConfiguration MOT_A_CONFIG = {
     .enc_cnt = &TIM5->CNT,
     .pwm_ccr = &TIM1->CCR4,
     .vpropi_adc = &adc_buff[3],
-    .reverse_polarity = false,
 };
 
 constexpr MotorConfiguration MOT_B_CONFIG = {
@@ -92,7 +91,6 @@ constexpr MotorConfiguration MOT_B_CONFIG = {
     .enc_cnt = &TIM4->CNT,
     .pwm_ccr = &TIM9->CCR2,
     .vpropi_adc = &adc_buff[2],
-    .reverse_polarity = false,
 };
 
 constexpr MotorConfiguration MOT_C_CONFIG = {
@@ -103,7 +101,6 @@ constexpr MotorConfiguration MOT_C_CONFIG = {
     .enc_cnt = &TIM3->CNT,
     .pwm_ccr = &TIM1->CCR1,
     .vpropi_adc = &adc_buff[0],
-    .reverse_polarity = true,
 };
 
 constexpr MotorConfiguration MOT_D_CONFIG = {
@@ -114,7 +111,6 @@ constexpr MotorConfiguration MOT_D_CONFIG = {
     .enc_cnt = &TIM2->CNT,
     .pwm_ccr = &TIM9->CCR1,
     .vpropi_adc = &adc_buff[1],
-    .reverse_polarity = true,
 };
 
 extern MotorController MotA;
@@ -123,49 +119,57 @@ extern MotorController MotC;
 extern MotorController MotD;
 
 // Robot configuration for Leo Rover v1.8 or earlier
-constexpr diff_drive_lib::RobotConfiguration ROBOT_CONFIG_108 = {
+constexpr diff_drive_lib::RobotConfiguration ROBOT_CONFIG_V1 = {
     .wheel_FL_conf =
         {
             .motor = MotC,
             .op_mode = diff_drive_lib::WheelOperationMode::VELOCITY,
+            .reversed = true,
         },
     .wheel_RL_conf =
         {
             .motor = MotD,
             .op_mode = diff_drive_lib::WheelOperationMode::VELOCITY,
+            .reversed = true,
         },
     .wheel_FR_conf =
         {
             .motor = MotA,
             .op_mode = diff_drive_lib::WheelOperationMode::VELOCITY,
+            .reversed = false,
         },
     .wheel_RR_conf =
         {
             .motor = MotB,
             .op_mode = diff_drive_lib::WheelOperationMode::VELOCITY,
+            .reversed = false,
         },
 };
 
 // Robot configuration for Leo Rover v1.9 or later
-constexpr diff_drive_lib::RobotConfiguration ROBOT_CONFIG = {
+constexpr diff_drive_lib::RobotConfiguration ROBOT_CONFIG_V2 = {
     .wheel_FL_conf =
-        {
-            .motor = MotD,
-            .op_mode = diff_drive_lib::WheelOperationMode::VELOCITY,
-        },
-    .wheel_RL_conf =
-        {
-            .motor = MotC,
-            .op_mode = diff_drive_lib::WheelOperationMode::VELOCITY,
-        },
-    .wheel_FR_conf =
-        {
-            .motor = MotB,
-            .op_mode = diff_drive_lib::WheelOperationMode::VELOCITY,
-        },
-    .wheel_RR_conf =
         {
             .motor = MotA,
             .op_mode = diff_drive_lib::WheelOperationMode::VELOCITY,
+            .reversed = true,
+        },
+    .wheel_RL_conf =
+        {
+            .motor = MotB,
+            .op_mode = diff_drive_lib::WheelOperationMode::VELOCITY,
+            .reversed = true,
+        },
+    .wheel_FR_conf =
+        {
+            .motor = MotC,
+            .op_mode = diff_drive_lib::WheelOperationMode::VELOCITY,
+            .reversed = false,
+        },
+    .wheel_RR_conf =
+        {
+            .motor = MotD,
+            .op_mode = diff_drive_lib::WheelOperationMode::VELOCITY,
+            .reversed = false,
         },
 };
