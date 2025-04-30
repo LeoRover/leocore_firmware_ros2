@@ -28,10 +28,10 @@ void ImuReceiver::update() {
   float ay_ =
       static_cast<float>(ICM42605Data[2]) * ares_ * GRAVITATIONAL_ACCELERATION;
   float az_ =
-      -static_cast<float>(ICM42605Data[3]) * ares_ * GRAVITATIONAL_ACCELERATION;
+      static_cast<float>(ICM42605Data[3]) * ares_ * GRAVITATIONAL_ACCELERATION;
   float gx_ = static_cast<float>(ICM42605Data[4]) * gres_ * DEGREE_TO_RADIAN;
   float gy_ = static_cast<float>(ICM42605Data[5]) * gres_ * DEGREE_TO_RADIAN;
-  float gz_ = -static_cast<float>(ICM42605Data[6]) * gres_ * DEGREE_TO_RADIAN;
+  float gz_ = static_cast<float>(ICM42605Data[6]) * gres_ * DEGREE_TO_RADIAN;
 
   switch (orientation_) {
     case Orientation::DEFAULT:
@@ -52,11 +52,11 @@ void ImuReceiver::update() {
       break;
     case Orientation::X_LEFT_Z_FORWARD:
       ax = az_;
-      ay = ax_;
-      az = ay_;
+      ay = -ax_;
+      az = -ay_;
       gx = gz_;
-      gy = gx_;
-      gz = gy_;
+      gy = -gx_;
+      gz = -gy_;
       break;
   }
 }
