@@ -100,6 +100,7 @@ stm32cubemx
 
 Open the `leocore.ioc` project, make the changes and click `GENERATE CODE`.
 
+[Leo Rover Specification]: https://docs.fictionlab.pl/leo-rover/documentation/specification
 [LeoCore]: https://www.leorover.tech/documentation/leo-core
 [CMake]: https://cmake.org/
 [Nix]: https://nixos.org/
