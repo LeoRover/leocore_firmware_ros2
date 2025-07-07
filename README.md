@@ -14,6 +14,9 @@ The project is written for [CMake] and uses [Nix] to provide a development shell
 
 The firmware also uses [rcl+rclc] as a client library with [Micro XRCE-DDS] as a middleware to expose its functionalities on ROS topics, services and parameters. For the documentation of the ROS API, visit [Leo Rover Specification].
 
+> [!NOTE]
+> If you don't want to make changes to the code, downloading a newest pre-built firmware version from [releases](https://github.com/LeoRover/leocore_firmware_ros2/releases) is recommended. After downloading firmware that way, you can move on to the [flashing](#flashing) section.
+
 ## Prerequisites
 - [Nix] package manager (version 2.28 or later) with [Flakes] enabled
 - (optional) [direnv] and [nix-direnv] for automatic loading of the development shell
