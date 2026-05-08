@@ -18,6 +18,14 @@ constexpr const char* controller_angular_velocity_multiplier_param_name =
     "controller/angular_velocity_multiplier";
 constexpr const char* controller_input_timeout_param_name =
     "controller/input_timeout";
+constexpr const char* controller_linear_acceleration_param_name =
+    "controller/linear_acceleration";
+constexpr const char* controller_linear_deceleration_param_name =
+    "controller/linear_deceleration";
+constexpr const char* controller_angular_acceleration_param_name =
+    "controller/angular_acceleration";
+constexpr const char* controller_angular_deceleration_param_name =
+    "controller/angular_deceleration";
 constexpr const char* battery_min_voltage_param_name = "battery_min_voltage";
 constexpr const char* leo_hardware_version_param_name = "leo_hardware_version";
 
@@ -80,6 +88,18 @@ bool Parameters::init(rclc_parameter_server_t* param_server) {
       robot_angular_velocity_multiplier))
   RCCHECK(init_parameter_int(param_server, controller_input_timeout_param_name,
                              robot_input_timeout))
+  RCCHECK(init_parameter_double(param_server,
+                                controller_linear_acceleration_param_name,
+                                robot_linear_acceleration))
+  RCCHECK(init_parameter_double(param_server,
+                                controller_linear_deceleration_param_name,
+                                robot_linear_deceleration))
+  RCCHECK(init_parameter_double(param_server,
+                                controller_angular_acceleration_param_name,
+                                robot_angular_acceleration))
+  RCCHECK(init_parameter_double(param_server,
+                                controller_angular_deceleration_param_name,
+                                robot_angular_deceleration))
   RCCHECK(init_parameter_double(param_server, battery_min_voltage_param_name,
                                 battery_min_voltage))
   RCCHECK(init_parameter_int(param_server, leo_hardware_version_param_name,
@@ -122,6 +142,14 @@ void Parameters::update(rclc_parameter_server_t* param_server) {
                        &robot_angular_velocity_multiplier);
   get_parameter_int(param_server, controller_input_timeout_param_name,
                     &robot_input_timeout);
+  get_parameter_double(param_server, controller_linear_acceleration_param_name,
+                       &robot_linear_acceleration);
+  get_parameter_double(param_server, controller_linear_deceleration_param_name,
+                       &robot_linear_deceleration);
+  get_parameter_double(param_server, controller_angular_acceleration_param_name,
+                       &robot_angular_acceleration);
+  get_parameter_double(param_server, controller_angular_deceleration_param_name,
+                       &robot_angular_deceleration);
   get_parameter_double(param_server, battery_min_voltage_param_name,
                        &battery_min_voltage);
   get_parameter_int(param_server, leo_hardware_version_param_name,

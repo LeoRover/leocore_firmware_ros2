@@ -19,6 +19,10 @@ struct Parameters : diff_drive_lib::RobotParams {
     robot_wheel_base = 0.3052F;
     robot_angular_velocity_multiplier = 1.76F;
     robot_input_timeout = 500;
+    robot_linear_acceleration = 0.5F;
+    robot_linear_deceleration = 2.0F;
+    robot_angular_acceleration = 2.0F;
+    robot_angular_deceleration = 4.0F;
   }
 
   float battery_min_voltage = 10.0;
