@@ -13,7 +13,7 @@ struct MotorConfiguration {
   volatile uint16_t *vpropi_adc;
 };
 
-class MotorController : public diff_drive_lib::MotorControllerInterface {
+class MotorController : public diff_drive_lib::MotorControllerBase {
  public:
   MotorController(const MotorConfiguration &config) : config_(config) {};
 

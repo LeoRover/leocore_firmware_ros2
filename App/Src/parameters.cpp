@@ -4,10 +4,9 @@ constexpr const char* wheel_encoder_resolution_param_name =
     "wheels/encoder_resolution";
 constexpr const char* wheel_torque_constant_param_name =
     "wheels/torque_constant";
-constexpr const char* wheel_pid_p_param_name = "wheels/pid/p";
-constexpr const char* wheel_pid_i_param_name = "wheels/pid/i";
-constexpr const char* wheel_pid_d_param_name = "wheels/pid/d";
-constexpr const char* wheel_pwm_duty_limit_param_name = "wheels/pwm_duty_limit";
+constexpr const char* wheel_pid_p_param_name = "wheels/pid/v2/p";
+constexpr const char* wheel_pid_i_param_name = "wheels/pid/v2/i";
+constexpr const char* wheel_pid_d_param_name = "wheels/pid/v2/d";
 constexpr const char* mecanum_wheels_param_name = "mecanum_wheels";
 constexpr const char* controller_wheel_radius_param_name =
     "controller/wheel_radius";
@@ -67,8 +66,6 @@ bool Parameters::init(rclc_parameter_server_t* param_server) {
       init_parameter_double(param_server, wheel_pid_i_param_name, wheel_pid_i))
   RCCHECK(
       init_parameter_double(param_server, wheel_pid_d_param_name, wheel_pid_d))
-  RCCHECK(init_parameter_double(param_server, wheel_pwm_duty_limit_param_name,
-                                wheel_pwm_duty_limit))
   RCCHECK(init_parameter_bool(param_server, mecanum_wheels_param_name,
                               mecanum_wheels))
   RCCHECK(init_parameter_double(
@@ -112,8 +109,6 @@ void Parameters::update(rclc_parameter_server_t* param_server) {
   get_parameter_double(param_server, wheel_pid_p_param_name, &wheel_pid_p);
   get_parameter_double(param_server, wheel_pid_i_param_name, &wheel_pid_i);
   get_parameter_double(param_server, wheel_pid_d_param_name, &wheel_pid_d);
-  get_parameter_double(param_server, wheel_pwm_duty_limit_param_name,
-                       &wheel_pwm_duty_limit);
   rclc_parameter_get_bool(param_server, mecanum_wheels_param_name,
                           &mecanum_wheels);
   get_parameter_double(param_server, controller_wheel_radius_param_name,

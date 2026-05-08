@@ -10,10 +10,9 @@ struct Parameters : diff_drive_lib::RobotParams {
     // Wheel
     wheel_encoder_resolution = 878.4F;
     wheel_torque_constant = 1.17647F;
-    wheel_pid_p = 0.0F;
-    wheel_pid_i = 0.005F;
-    wheel_pid_d = 0.0F;
-    wheel_pwm_duty_limit = 100.0F;
+    wheel_pid_p = 2.64F;
+    wheel_pid_i = 42.24F;
+    wheel_pid_d = 0.11F;
 
     robot_wheel_radius = 0.0625F;
     robot_wheel_separation = 0.358F;

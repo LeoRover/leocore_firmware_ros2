@@ -375,7 +375,7 @@ static bool initROS() {
 
   // Parameter Server
   static rclc_parameter_options_t param_options;
-  param_options.max_params = 14;
+  param_options.max_params = 13;
   param_options.notify_changed_over_dds = true;
   RCCHECK(rclc_parameter_server_init_with_option(&param_server, &node,
                                                  &param_options))
@@ -674,6 +674,11 @@ void update() {
   }
 
   if (status != AgentStatus::AGENT_CONNECTED || !controller_initialized) return;
+
+  MotA.setBatteryVoltage(battery_avg);
+  MotB.setBatteryVoltage(battery_avg);
+  MotC.setBatteryVoltage(battery_avg);
+  MotD.setBatteryVoltage(battery_avg);
 
   controller->update(UPDATE_PERIOD);
 
