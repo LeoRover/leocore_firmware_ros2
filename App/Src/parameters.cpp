@@ -4,9 +4,9 @@ constexpr const char* wheel_encoder_resolution_param_name =
     "wheels/encoder_resolution";
 constexpr const char* wheel_torque_constant_param_name =
     "wheels/torque_constant";
-constexpr const char* wheel_pid_p_param_name = "wheels/pid/v2/p";
-constexpr const char* wheel_pid_i_param_name = "wheels/pid/v2/i";
-constexpr const char* wheel_pid_d_param_name = "wheels/pid/v2/d";
+constexpr const char* wheel_pid_p_param_name = "wheels/pid/v2/kp";
+constexpr const char* wheel_pid_i_param_name = "wheels/pid/v2/ki";
+constexpr const char* wheel_pid_d_param_name = "wheels/pid/v2/kd";
 constexpr const char* mecanum_wheels_param_name = "mecanum_wheels";
 constexpr const char* controller_wheel_radius_param_name =
     "controller/wheel_radius";
