@@ -1,24 +1,24 @@
 #include "app/parameters.hpp"
 
 constexpr const char* wheel_encoder_resolution_param_name =
-    "wheels/encoder_resolution";
+    "wheels.encoder_resolution";
 constexpr const char* wheel_torque_constant_param_name =
-    "wheels/torque_constant";
-constexpr const char* wheel_pid_p_param_name = "wheels/pid/p";
-constexpr const char* wheel_pid_i_param_name = "wheels/pid/i";
-constexpr const char* wheel_pid_d_param_name = "wheels/pid/d";
-constexpr const char* wheel_pwm_duty_limit_param_name = "wheels/pwm_duty_limit";
+    "wheels.torque_constant";
+constexpr const char* wheel_pid_p_param_name = "wheels.pid.p";
+constexpr const char* wheel_pid_i_param_name = "wheels.pid.i";
+constexpr const char* wheel_pid_d_param_name = "wheels.pid.d";
+constexpr const char* wheel_pwm_duty_limit_param_name = "wheels.pwm_duty_limit";
 constexpr const char* mecanum_wheels_param_name = "mecanum_wheels";
 constexpr const char* controller_wheel_radius_param_name =
-    "controller/wheel_radius";
+    "controller.wheel_radius";
 constexpr const char* controller_wheel_separation_param_name =
-    "controller/wheel_separation";
+    "controller.wheel_separation";
 constexpr const char* controller_wheel_base_param_name =
-    "controller/wheel_base";
+    "controller.wheel_base";
 constexpr const char* controller_angular_velocity_multiplier_param_name =
-    "controller/angular_velocity_multiplier";
+    "controller.angular_velocity_multiplier";
 constexpr const char* controller_input_timeout_param_name =
-    "controller/input_timeout";
+    "controller.input_timeout";
 constexpr const char* battery_min_voltage_param_name = "battery_min_voltage";
 constexpr const char* leo_hardware_version_param_name = "leo_hardware_version";
 
