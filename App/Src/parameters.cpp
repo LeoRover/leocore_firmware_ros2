@@ -1,31 +1,31 @@
 #include "app/parameters.hpp"
 
 constexpr const char* wheel_encoder_resolution_param_name =
-    "wheels/encoder_resolution";
+    "wheels.encoder_resolution";
 constexpr const char* wheel_torque_constant_param_name =
-    "wheels/torque_constant";
-constexpr const char* wheel_pid_p_param_name = "wheels/pid/v2/kp";
-constexpr const char* wheel_pid_i_param_name = "wheels/pid/v2/ki";
-constexpr const char* wheel_pid_d_param_name = "wheels/pid/v2/kd";
+    "wheels.torque_constant";
+constexpr const char* wheel_pid_p_param_name = "wheels.pid.kp";
+constexpr const char* wheel_pid_i_param_name = "wheels.pid.ki";
+constexpr const char* wheel_pid_d_param_name = "wheels.pid.kd";
 constexpr const char* mecanum_wheels_param_name = "mecanum_wheels";
 constexpr const char* controller_wheel_radius_param_name =
-    "controller/wheel_radius";
+    "controller.wheel_radius";
 constexpr const char* controller_wheel_separation_param_name =
-    "controller/wheel_separation";
+    "controller.wheel_separation";
 constexpr const char* controller_wheel_base_param_name =
-    "controller/wheel_base";
+    "controller.wheel_base";
 constexpr const char* controller_angular_velocity_multiplier_param_name =
-    "controller/angular_velocity_multiplier";
+    "controller.angular_velocity_multiplier";
 constexpr const char* controller_input_timeout_param_name =
-    "controller/input_timeout";
+    "controller.input_timeout";
 constexpr const char* controller_linear_acceleration_param_name =
-    "controller/linear_acceleration";
+    "controller.linear_acceleration";
 constexpr const char* controller_linear_deceleration_param_name =
-    "controller/linear_deceleration";
+    "controller.linear_deceleration";
 constexpr const char* controller_angular_acceleration_param_name =
-    "controller/angular_acceleration";
+    "controller.angular_acceleration";
 constexpr const char* controller_angular_deceleration_param_name =
-    "controller/angular_deceleration";
+    "controller.angular_deceleration";
 constexpr const char* battery_min_voltage_param_name = "battery_min_voltage";
 constexpr const char* leo_hardware_version_param_name = "leo_hardware_version";
 
