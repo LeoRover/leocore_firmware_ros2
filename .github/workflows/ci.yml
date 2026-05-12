@@ -11,21 +11,21 @@ on:
 
 jobs:
   clang-format_check:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
       - name: Check formatting
-        uses: jidicula/clang-format-action@v4.15.0
+        uses: jidicula/clang-format-action@v4.18.0
         with:
           clang-format-version: "20"
           check-path: "App"
           fallback-style: "LLVM"
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
         with:
           submodules: true
       - name: Install Nix
