@@ -676,10 +676,10 @@ void update() {
 
   if (status != AgentStatus::AGENT_CONNECTED || !controller_initialized) return;
 
-  MotA.setBatteryVoltage(battery_avg);
-  MotB.setBatteryVoltage(battery_avg);
-  MotC.setBatteryVoltage(battery_avg);
-  MotD.setBatteryVoltage(battery_avg);
+  MotA.setSupplyVoltage(battery_avg);
+  MotB.setSupplyVoltage(battery_avg);
+  MotC.setSupplyVoltage(battery_avg);
+  MotD.setSupplyVoltage(battery_avg);
 
   controller->update(UPDATE_PERIOD);
 
