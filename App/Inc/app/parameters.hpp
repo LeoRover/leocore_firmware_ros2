@@ -13,6 +13,7 @@ struct Parameters : diff_drive_lib::RobotParams {
     wheel_pid_p = 2.64F;
     wheel_pid_i = 42.24F;
     wheel_pid_d = 0.11F;
+    wheel_max_voltage = 26.0F;
 
     robot_wheel_radius = 0.0625F;
     robot_wheel_separation = 0.358F;
