@@ -1,5 +1,8 @@
 #include "app/parameters.hpp"
 
+#include <cmath>
+#include <cstdint>
+
 constexpr const char* wheel_encoder_resolution_param_name =
     "wheels.encoder_resolution";
 constexpr const char* wheel_torque_constant_param_name =
@@ -116,7 +119,9 @@ inline void get_parameter_double(rclc_parameter_server_t* param_server,
   double tmp;
   rclc_parameter_get_double(param_server, param_name, &tmp);
   float val = static_cast<float>(tmp);
-  *output = val > min_value ? val : min_value;
+  if (std::isfinite(val)) {
+    *output = val > min_value ? val : min_value;
+  }
 }
 
 inline void get_parameter_int(rclc_parameter_server_t* param_server,
@@ -124,6 +129,11 @@ inline void get_parameter_int(rclc_parameter_server_t* param_server,
                               int min_value = -1000000) {
   int64_t tmp;
   rclc_parameter_get_int(param_server, param_name, &tmp);
+  if (tmp > INT32_MAX) {
+    tmp = INT32_MAX;
+  } else if (tmp < INT32_MIN) {
+    tmp = INT32_MIN;
+  }
   int val = static_cast<int>(tmp);
   *output = val > min_value ? val : min_value;
 }
