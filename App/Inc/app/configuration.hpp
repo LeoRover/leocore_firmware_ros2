@@ -59,7 +59,7 @@ constexpr uint8_t IMU_PUB_PERIOD = 1;
 constexpr uint8_t PARAM_TRIGGER_PUB_PERIOD = 100;
 
 // The time after which the firmware will boot with default parameter values
-constexpr uint32_t BOOT_TIMEOUT = 20000;
+constexpr uint32_t BOOT_TIMEOUT = 300000;
 
 // Raw value of the Battery ADC
 static volatile uint16_t& BATTERY_ADC = adc_buff[4];
